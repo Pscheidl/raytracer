@@ -107,7 +107,7 @@ impl Game {
             for _ in 0..1000 { 
                                 
                 if !is_enemy_found {
-                    draw_rectange( GRAY, projectile.x , projectile.z, 1, 1, con, g); // DEBUG RAYS
+                    //draw_rectange( GRAY, projectile.x , projectile.z, 1, 1, con, g); // DEBUG RAYS
                     let delta_z = 0.5;
                     let delta_x = projectile.yaw.tan() * delta_z;
                     projectile.x += delta_x;  //cos or sin
@@ -145,26 +145,26 @@ impl Game {
                     && enemy_z_from_player - enemy.size < projectile.z 
                     && enemy_z_from_player + enemy.size > projectile.z 
                     && !is_enemy_found {*/
-                    let enemy_x_moved = enemy.x - self.player.x - (PI/2.0 as f64).cos()*object_size;
-                    let enemy_z_moved = enemy.z - self.player.z - (PI/2.0 as f64).sin()*object_size;
-                    let enemy_x_moved_2 = enemy.x - self.player.x;
-                    let enemy_z_moved_2 = enemy.z - self.player.z;
-                    let len_from_core = ((enemy_x_moved-projectile.x).powf(2.0) + (enemy_z_moved-projectile.z).powf(2.0)).sqrt();
-                    let len_from_tip = ((enemy_x_moved_2-projectile.x).powf(2.0) + (enemy_z_moved_2-projectile.z).powf(2.0)).sqrt();
-                    
+                    let enemy_x_moved_tip = enemy.x - self.player.x - (PI/2.0 as f64).cos()*object_size;
+                    let enemy_z_moved_tip = enemy.z - self.player.z - (PI/2.0 as f64).sin()*object_size;
+                    let enemy_x_moved_core = enemy.x - self.player.x;
+                    let enemy_z_moved_core = enemy.z - self.player.z;
+                    let len_from_core = ((enemy_x_moved_core-projectile.x).powf(2.0) + (enemy_z_moved_core-projectile.z).powf(2.0)).sqrt();
+                                        
                     if len_from_core + 0.5 >= object_size && len_from_core - 0.5 <= object_size && !is_enemy_found {
                                                                   
-                        draw_rectange( RED, enemy_x_moved , enemy_z_moved, 1, 1, con, g); // center of circle
-                        draw_rectange( YELLOW, enemy_x_moved_2 , enemy_z_moved_2, 1, 1, con, g); // top point on the circle
+                        draw_rectange( RED, enemy_x_moved_core , enemy_z_moved_core, 1, 1, con, g); // center of circle
+                        draw_rectange( YELLOW, enemy_x_moved_tip , enemy_z_moved_tip, 1, 1, con, g); // top point on the circle
                         
                         is_enemy_found = true;
                         projectile.yaw += PI / 2.0; // aim back
 
+                        let len_from_tip = ((enemy_x_moved_tip-projectile.x).powf(2.0) + (enemy_z_moved_tip-projectile.z).powf(2.0)).sqrt();
                         // tilt rays based on side it comes from
-                        if projectile.x > enemy_x_moved {
-                            projectile.yaw -= PI/object_size*len_from_tip;
+                        if projectile.x > enemy_x_moved_core {
+                            projectile.yaw += PI/object_size*len_from_tip/2.0;
                         } else {
-                            projectile.yaw += PI/object_size*len_from_tip;
+                            projectile.yaw -= PI/object_size*len_from_tip/2.0;
                         }                        
                     } 
                 }
