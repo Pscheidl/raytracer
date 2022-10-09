@@ -7,11 +7,17 @@ use crate::player;
 use crate::drawing::draw_rectange;
 use crate::enemy;
 use piston_window::color::{WHITE, RED, BLUE, GREEN, YELLOW, GRAY};
+use crate::projectile::Projectile;
+
+const WINDOW_X_OFFSET: f64 = 950.0; //256;
+const WINDOW_Y_OFFSET: f64 = 300.0; //192;
+const FRAME_BUFFER_X: usize = 2; 
+const FRAME_BUFFER_Y: usize = 2; 
 
 pub struct Game {
     // World buffers
-    pub frame_buffer: [[bool; WINDOW_HEIGHT]; WINDOW_WIDTH],
-    pub frame_buffer_next_tick: [[bool; WINDOW_HEIGHT]; WINDOW_WIDTH],
+    pub frame_buffer: [[bool; FRAME_BUFFER_Y]; FRAME_BUFFER_X],
+    pub frame_buffer_next_tick: [[bool; FRAME_BUFFER_Y]; FRAME_BUFFER_X],
     pub player: player::Player,
     pub enemies: Vec<enemy::Enemy>,
     pub enemy_spawn_difficulty: usize,
@@ -21,27 +27,32 @@ pub struct Game {
 impl Game {
     pub fn new() -> Game {
         // randomize world
-        let temp_world = [[false; WINDOW_HEIGHT]; WINDOW_WIDTH];
+        let temp_world = [[false; FRAME_BUFFER_Y]; FRAME_BUFFER_X];
         let mut enemies =  Vec::new();
-        enemies.push(enemy::Enemy::new(250.0, 500.0, 150.0, 10.0, 1000, enemy::EnemyType::Sphere));
-        //enemies.push(enemy::Enemy::new(200.0, 500.0, 50.0, 10.0, 1000, enemy::EnemyType::Sphere)); 
-        //enemies.push(enemy::Enemy::new(300.0, 500.0, 100.0, 10.0, 1000, enemy::EnemyType::Sphere)); 
+        /*
+        E N E M Y        
+        */
+        enemies.push(enemy::Enemy::new(150.0, 250.0, 70.0, 25.0, 1000, enemy::EnemyType::Sphere));
+        enemies.push(enemy::Enemy::new(100.0, 300.0, 90.0, 25.0, 1000, enemy::EnemyType::Sphere)); 
+        enemies.push(enemy::Enemy::new(50.0, 350.0, 100.0, 25.0, 1000, enemy::EnemyType::Sphere)); 
         Game {
             frame_buffer: temp_world,
-            frame_buffer_next_tick: [[false; WINDOW_HEIGHT]; WINDOW_WIDTH],
+            frame_buffer_next_tick: [[false; FRAME_BUFFER_Y]; FRAME_BUFFER_X],
             player: player::Player::new(
-            WINDOW_WIDTH as f64/ 2.0,
-            WINDOW_HEIGHT as f64/ 2.0,
-            0.0,
-            10.0,
-            10.0,
-            false,
-            false,
-            false,
-            false,
-            false,
-            Vec::new(),
-            50,            
+                93 as f64,
+                200 as f64,
+                -99.0,
+                10.0,
+                10.0,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                [[Projectile::new(0.0,0.0,0.0,0.0,0.0); 250]; 250],
+                50,
             ),
             enemies: enemies,
             enemy_spawn_ticks: 150,
@@ -58,6 +69,8 @@ impl Game {
             piston_window::Key::A => self.player.is_moving_left = true,
             piston_window::Key::Right => self.player.is_moving_right = true,
             piston_window::Key::D => self.player.is_moving_right = true,
+            piston_window::Key::Q => self.player.is_moving_forward = true,
+            piston_window::Key::E => self.player.is_moving_backward = true,
             piston_window::Key::RCtrl => self.player.is_shooting = true,
             piston_window::Key::LCtrl => self.player.is_shooting = true,
             _ => {}
@@ -73,6 +86,8 @@ impl Game {
             piston_window::Key::A => self.player.is_moving_left = false,
             piston_window::Key::Right => self.player.is_moving_right = false,
             piston_window::Key::D => self.player.is_moving_right = false,
+            piston_window::Key::Q => self.player.is_moving_forward = false,
+            piston_window::Key::E => self.player.is_moving_backward = false,
             piston_window::Key::RCtrl => self.player.is_shooting = false,
             piston_window::Key::LCtrl => self.player.is_shooting = false,
             _ => {}
@@ -81,9 +96,9 @@ impl Game {
 
     /// Draws entire world.
     pub fn compute_one_tick(&mut self, con: &piston_window::Context,
-         g: &mut piston_window::G2d) -> Vec<usize> {
+         g: &mut piston_window::G2d) -> [[usize; 250]; 250] {
 
-        let mut result = Vec::<usize>::new();
+        let mut result = [[0; 250]; 250];
         // Iterate over the world
 
         // player - no need to draw
@@ -99,76 +114,155 @@ impl Game {
         let object_size = 25.0;
         
         
-        for (index, projectile) in self.player.projectiles.iter_mut().enumerate() {
-            result.push(0);
-            
-            let mut is_enemy_found = false;
-            
-            for _ in 0..1000 { 
-                                
-                if !is_enemy_found {
-                    //draw_rectange( GRAY, projectile.x , projectile.z, 1, 1, con, g); // DEBUG RAYS
-                    let delta_z = 0.5;
-                    let delta_x = projectile.yaw.tan() * delta_z;
-                    projectile.x += delta_x;  //cos or sin
-                    projectile.z += delta_z;
-                } else {
-                    if projectile.x <= 10.0 {
-                        result[index] = 1;
-                        break;
-                    }
-                    if projectile.x >= 200.0 {
-                        result[index] = 2;
-                        break;
-                    }
-
-                    if projectile.z <= 10.0 {
-                        result[index] = 3;
-                        break;
-                    }
-                    if projectile.z >= 200.0 {
-                        result[index] = 4;
-                        break;
-                    }
-                    projectile.x += projectile.yaw.cos();
-                    projectile.z += projectile.yaw.sin();
-                    draw_rectange( BLUE, projectile.x , projectile.z, 1, 1, con, g);
-                    continue;           
-                }
+        for (index_row, projectile_row) in self.player.projectiles.iter_mut().enumerate() {
+            for (index_column, projectile) in projectile_row.iter_mut().enumerate() {
                 
-                for (index, enemy) in self.enemies.iter_mut().enumerate() {   
-                    /*let enemy_x_from_player = enemy.x - self.player.x;
-                    let enemy_z_from_player = enemy.z - self.player.z;
+                
+                let mut is_enemy_found = false;
+                
+                for _ in 0..2000 { 
 
-                    if enemy_x_from_player - enemy.size < projectile.x 
-                    && enemy_x_from_player + enemy.size > projectile.x 
-                    && enemy_z_from_player - enemy.size < projectile.z 
-                    && enemy_z_from_player + enemy.size > projectile.z 
-                    && !is_enemy_found {*/
-                    let enemy_x_moved_tip = enemy.x - self.player.x - (PI/2.0 as f64).cos()*object_size;
-                    let enemy_z_moved_tip = enemy.z - self.player.z - (PI/2.0 as f64).sin()*object_size;
-                    let enemy_x_moved_core = enemy.x - self.player.x;
-                    let enemy_z_moved_core = enemy.z - self.player.z;
-                    let len_from_core = ((enemy_x_moved_core-projectile.x).powf(2.0) + (enemy_z_moved_core-projectile.z).powf(2.0)).sqrt();
-                                        
-                    if len_from_core + 0.5 >= object_size && len_from_core - 0.5 <= object_size && !is_enemy_found {
-                                                                  
-                        draw_rectange( RED, enemy_x_moved_core , enemy_z_moved_core, 1, 1, con, g); // center of circle
-                        draw_rectange( YELLOW, enemy_x_moved_tip , enemy_z_moved_tip, 1, 1, con, g); // top point on the circle
+                    /*0 => GRAY,
+                        1 => GREEN,
+                        2 => RED,
+                        3 => BLUE,
+                        4 => YELLOW,
+                        5 => CYAN,
+                        6 => MAGENTA,
+                        _ => WHITE, */
+                        if projectile.x <= -100.0 {
+                            result[index_row][index_column] = 1;
+                            if is_enemy_found {
+                                break;
+                            }
+                            
+                        }
+                        if projectile.x >= 200.0 {
+                            result[index_row][index_column] = 2;
+                            if is_enemy_found {
+                                break;
+                            }
+                        }
+
+                        if projectile.z <= -100.0 {
+                            result[index_row][index_column] = 3;
+                            if is_enemy_found {
+                                break;
+                            }
+                        }
+                        if projectile.z >= 400.0 {
+                            result[index_row][index_column] = 4;
+                            if is_enemy_found {
+                                break;
+                            }
+                        }
+                        if projectile.y <= -100.0 {
+                            result[index_row][index_column] = 5;
+                            if is_enemy_found {
+                                break;
+                            }
+                        }
+                        if projectile.y >= 400.0 {
+                            result[index_row][index_column] = 6;
+                            if is_enemy_found {
+                                break;
+                            }
+                        }
+                                    
+                    if !is_enemy_found {
+                        //draw_rectange( GRAY, projectile.x , projectile.z, 1, 1, con, g); // DEBUG RAYS
+
+                        let mut delta_z = 0.5;
+                        let mut delta_x = projectile.yaw.tan() * delta_z;
+                        let mut delta_y = projectile.pitch.tan() * delta_z;
+
+                        let vec_len = (delta_x.powf(2.0) + delta_y.powf(2.0) + delta_z.powf(2.0)).sqrt();
+
+                        delta_x /= vec_len;
+                        delta_y /= vec_len;
+                        delta_z /= vec_len;
+
+                        projectile.x += delta_x;  //cos or sin
+                        projectile.z += delta_z;
+                        projectile.y += delta_y;
+                    } else {
+                        let mut delta_x = projectile.yaw.cos();
+                        let mut delta_y = projectile.pitch.sin();
+                        let mut delta_z = projectile.yaw.sin();                        
                         
-                        is_enemy_found = true;
-                        projectile.yaw += PI / 2.0; // aim back
+                        let vec_len = (delta_x.powf(2.0) + delta_y.powf(2.0) + delta_z.powf(2.0)).sqrt();
 
-                        let len_from_tip = ((enemy_x_moved_tip-projectile.x).powf(2.0) + (enemy_z_moved_tip-projectile.z).powf(2.0)).sqrt();
-                        // tilt rays based on side it comes from
-                        if projectile.x > enemy_x_moved_core {
-                            projectile.yaw += PI/object_size*len_from_tip/2.0;
-                        } else {
-                            projectile.yaw -= PI/object_size*len_from_tip/2.0;
-                        }                        
-                    } 
+                        delta_x /= vec_len;
+                        delta_y /= vec_len;
+                        delta_z /= vec_len;
+
+                        projectile.x += delta_x;
+                        projectile.y += delta_y;
+                        projectile.z += delta_z;
+                        
+                        if index_row == 25 {
+                            // X cor reflected rays
+                            draw_rectange( BLUE, projectile.x + WINDOW_X_OFFSET, projectile.z, 1, 1, con, g);
+                        }
+                        if index_column == 20 {
+                            // Y cor reflected rays
+                            draw_rectange( YELLOW, projectile.y + WINDOW_X_OFFSET + WINDOW_Y_OFFSET, projectile.z, 1, 1, con, g);
+                        }
+                        continue;           
+                    }
+                    
+                    for (index, enemy) in self.enemies.iter_mut().enumerate() {   
+                                                
+                        let enemy_x_moved_tip = enemy.x - self.player.x - (PI/2.0 as f64).cos()*object_size;
+                        let enemy_z_moved_tip = enemy.z - self.player.z - (PI/2.0 as f64).sin()*object_size;
+                        let enemy_y_moved_tip = enemy.y - self.player.y - (PI/2.0 as f64).cos()*object_size;
+                        let enemy_x_moved_core = enemy.x - self.player.x;
+                        let enemy_z_moved_core = enemy.z - self.player.z;
+                        let enemy_y_moved_core = enemy.y - self.player.y;
+                       
+                        let len_from_core = ((enemy_x_moved_core-projectile.x).powf(2.0) + (enemy_y_moved_core-projectile.y).powf(2.0) + (enemy_z_moved_core-projectile.z).powf(2.0)).sqrt();
+
+                        if index_row == 25 {                     
+                            draw_rectange( YELLOW, enemy_x_moved_core + WINDOW_X_OFFSET, enemy_z_moved_core, 1, 1, con, g); // center of circle
+                            draw_rectange( YELLOW, enemy_x_moved_tip + WINDOW_X_OFFSET , enemy_z_moved_tip, 1, 1, con, g); // top point on the circle
+                        }
+                        if index_column == 25 {
+                            draw_rectange( YELLOW, enemy_y_moved_core + WINDOW_X_OFFSET + WINDOW_Y_OFFSET, enemy_z_moved_core, 1, 1, con, g); // center of circle
+                            draw_rectange( YELLOW, enemy_y_moved_tip + WINDOW_X_OFFSET + WINDOW_Y_OFFSET, enemy_z_moved_tip, 1, 1, con, g); // top point on the circle
+                        }
+                        
+                        if len_from_core + 0.5 >= object_size && len_from_core - 0.5 <= object_size
+                        && !is_enemy_found {
+                            if index_row == 25 {                     
+                                draw_rectange( RED, enemy_x_moved_core + WINDOW_X_OFFSET, enemy_z_moved_core, 2, 2, con, g); // center of circle
+                                draw_rectange( RED, enemy_x_moved_tip + WINDOW_X_OFFSET , enemy_z_moved_tip, 2, 2, con, g); // top point on the circle
+                            }
+                            if index_column == 25 {
+                                draw_rectange( RED, enemy_y_moved_core + WINDOW_X_OFFSET + WINDOW_Y_OFFSET, enemy_z_moved_core, 2, 2, con, g); // center of circle
+                                draw_rectange( RED, enemy_y_moved_tip + WINDOW_X_OFFSET + WINDOW_Y_OFFSET, enemy_z_moved_tip, 2, 2, con, g); // top point on the circle
+                            }
+                            
+                            is_enemy_found = true;
+                            projectile.yaw += PI / 2.0; // aim back
+                            projectile.pitch += PI / 2.0; // aim back
+                            
+                            let len_from_tip = ((enemy_x_moved_tip-projectile.x).powf(2.0) + (enemy_y_moved_tip-projectile.y).powf(2.0) + (enemy_z_moved_tip-projectile.z).powf(2.0)).sqrt();
+                            // tilt rays based on side it comes from
+                            if projectile.x > enemy_x_moved_core {
+                                projectile.yaw += PI/object_size*len_from_tip/2.0;
+                            } else {
+                                projectile.yaw -= PI/object_size*len_from_tip/2.0;
+                            }
+                            if projectile.y > enemy_y_moved_core {
+                                projectile.pitch += PI/object_size*len_from_tip/2.0;
+                            } else {
+                                projectile.pitch -= PI/object_size*len_from_tip/2.0;
+                            }
+
+                        }
+                    }
                 }
-            }        
+            }
         }
         result
     }

@@ -39,14 +39,4 @@ impl Enemy {
             enemy_type,     
         }
     }
-    pub fn tick(&mut self) {
-        self.x += self.size;
-
-        //collision x
-        if self.x > WINDOW_WIDTH as f64 {
-            self.x = 0.0;            
-        } else if self.x < 0.0 {
-            self.x = (WINDOW_WIDTH - WIDTH) as f64;            
-        }
-    }
 }

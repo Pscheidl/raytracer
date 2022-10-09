@@ -19,8 +19,10 @@ pub struct Player {
     pub is_moving_down: bool,
     pub is_moving_left: bool,
     pub is_moving_right: bool,
+    pub is_moving_forward: bool,
+    pub is_moving_backward: bool,
     pub is_shooting: bool,
-    pub projectiles: Vec<Projectile>,
+    pub projectiles: [[Projectile; 250]; 250],//Vec<Projectile>,
     pub shooting_timer: usize,
 }
 
@@ -35,8 +37,10 @@ impl Player {
         is_moving_down: bool,
         is_moving_left: bool,
         is_moving_right: bool,
+        is_moving_forward: bool,
+        is_moving_backward: bool,
         is_shooting: bool, 
-        projectiles: Vec<Projectile>,
+        projectiles: [[Projectile; 250]; 250],//Vec<Projectile>,
         shooting_timer: usize,
     ) -> Player {
         Player {
@@ -48,7 +52,9 @@ impl Player {
             is_moving_up,
             is_moving_down,
             is_moving_left,
-            is_moving_right,            
+            is_moving_right,    
+            is_moving_forward,
+            is_moving_backward,
             is_shooting,
             projectiles,
             shooting_timer,
@@ -56,33 +62,37 @@ impl Player {
     }
     pub fn spawn_new_rays(&mut self) {
         if self.is_moving_left {
-            self.x -= 0.1;
+            self.x -= 1.1;
         }
 
         if self.is_moving_right {
-            self.x += 0.1;
+            self.x += 1.1;
         }
 
         if self.is_moving_up {
-            self.z -= 0.1;
+            self.z -= 1.1;
         }
 
         if self.is_moving_down {
-            self.z += 0.1;
+            self.z += 1.1;
         }
-        self.projectiles.clear();
-        let y = WINDOW_HEIGHT as f64 / 2.0;
-        
-        for x in 450..500 { //WINDOW_WIDTH
-            //for y in 1..WINDOW_HEIGHT {
-                self.projectiles.push(Projectile::new(
-                     WINDOW_WIDTH as f64 / 2.0,
-                     0.0,
-                     0.0,
-                     x as f64 / 50.0,
-                     0.0 
-                ));
-            //}
-        }     
+        if self.is_moving_backward {
+            self.y += 1.1;
+        }
+        if self.is_moving_forward {
+            self.y -= 1.1;
+        }
+
+        for y in 0..250 {
+            for x in 0..250 { //WINDOW_WIDTH
+                self.projectiles[y][x] = Projectile::new(
+                        256 as f64,
+                        20.0,
+                        0.0,
+                        1.8+(x) as f64 / 250.0,
+                        y as f64 / 250.0
+                );
+            }
+        }
     }
 }

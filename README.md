@@ -2,6 +2,9 @@
 
 Raycast engine written in Rust.
 
+09.10.2022 version - 3D raytracer - features one time reflection from mirror balls
+<img alt="Description" src="https://github.com/PavelVavruska/raytracer/blob/master/raytracer_20221006.png">
+
 06.10.2022 version - 2D raytracer (casting rays from the player)
 <img alt="Description" src="https://github.com/PavelVavruska/raytracer/blob/master/raytracer_20221006.png">
 

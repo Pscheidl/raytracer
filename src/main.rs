@@ -11,12 +11,12 @@ use drawing::to_gui_coord_u32;
 use game::Game;
 use piston_window::types::Color;
 use piston_window::*;
-use piston_window::color::{WHITE, RED, BLUE, GREEN, YELLOW, GRAY};
+use piston_window::color::{WHITE, RED, BLUE, GREEN, YELLOW, GRAY, CYAN, MAGENTA, MAROON};
 
 const BACK_COLOR: Color = [0.0, 0.0, 0.0, 1.0];
 // ZX Spectrum resolution 256×192
-const WINDOW_WIDTH: usize = 256;
-const WINDOW_HEIGHT: usize = 192;
+const WINDOW_WIDTH: usize = 256*6;
+const WINDOW_HEIGHT: usize = 192*4+30;
 
 pub const TEXT_COLOR: Color = [1.0, 1.0, 1.0, 1.0];
 
@@ -75,28 +75,30 @@ fn main() {
             piston_window::clear(BACK_COLOR, g);
             
             let result = game.compute_one_tick(&c, g);
-            let mut line = 0;
-            let mut row = 0;
-            let mut color = WHITE;
 
-            for color_num in result {
-                let mut color = match color_num {
-                    1 => GREEN,
-                    2 => RED,
-                    3 => BLUE,
-                    4 => YELLOW,
-                    _ => WHITE,
-                };
-
-                draw_rectange( color, line as f64, row as f64, 1, 10, &c, g);
-                line += 1;
+            for color_row in 0..result.len() {
+                for color_num in 0..result[color_row].len()  {
+                    let color = match result[color_row][color_num] {
+                        0 => GRAY,
+                        1 => GREEN,
+                        2 => RED,
+                        3 => BLUE,
+                        4 => YELLOW,
+                        5 => CYAN,
+                        6 => MAGENTA,
+                        _ => WHITE,
+                    };
+                let scaled_x = color_num * 3;
+                let scaled_z = color_row * 3;
+                draw_rectange( color, scaled_x as f64, scaled_z as f64, 3, 3, &c, g);
+                }
             }
                     
             // draw text            
             let transform = c.transform.trans(10.0, WINDOW_HEIGHT as f64 - 12.0);
 
-            text::Text::new_color([1.0, 1.0, 0.0, 1.0], 12).draw(
-                format!("X {} Z {}", game.player.x, game.player.z).as_str(),
+            text::Text::new_color([1.0, 1.0, 1.0, 1.0], 30).draw(
+                format!("X {:#?} Y {:#?} Z {:#?}", game.player.x, game.player.y, game.player.z).as_str(),
             &mut glyphs,
             &c.draw_state,
             transform, g
