@@ -15,7 +15,7 @@ use piston_window::color::{WHITE, RED, BLUE, GREEN, YELLOW, GRAY, CYAN, MAGENTA,
 
 const BACK_COLOR: Color = [0.0, 0.0, 0.0, 1.0];
 // ZX Spectrum resolution 256×192
-const WINDOW_WIDTH: usize = 256*6;
+const WINDOW_WIDTH: usize = 256*3;
 const WINDOW_HEIGHT: usize = 192*4+30;
 
 pub const TEXT_COLOR: Color = [1.0, 1.0, 1.0, 1.0];

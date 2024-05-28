@@ -33,20 +33,30 @@ impl Game {
         let temp_world = [[false; FRAME_BUFFER_Y]; FRAME_BUFFER_X];
         let mut enemies =  Vec::new();
         /*
-        E N E M Y        
+        E N E M Y
         */
-        enemies.push(enemy::Enemy::new(150.0, 250.0, 70.0, 25.0, 1000, enemy::EnemyType::Sphere));
-        enemies.push(enemy::Enemy::new(100.0, 300.0, 90.0, 25.0, 1000, enemy::EnemyType::Sphere)); 
-        enemies.push(enemy::Enemy::new(50.0, 350.0, 100.0, 25.0, 1000, enemy::EnemyType::Sphere)); 
+
+        /* Y - | +down
+           X - -  +right
+           Z - / +far*/
+        enemies.push(enemy::Enemy::new(-50.0, -50.0, 0.0, 100.0, 1000, enemy::EnemyType::Sphere));
+        enemies.push(enemy::Enemy::new(0.0, 0.0, 0.0, 50.0, 1000, enemy::EnemyType::Sphere));
+        enemies.push(enemy::Enemy::new(50.0,50.0, 0.0, 75.0, 1000, enemy::EnemyType::Sphere));
         Game {
             frame_buffer: temp_world,
             frame_buffer_next_tick: [[false; FRAME_BUFFER_Y]; FRAME_BUFFER_X],
             player: player::Player::new(
-                93 as f64,
-                200 as f64,
-                -99.0,
+                0 as f64,
+                0 as f64,
+                -59.0, // ROOM SIZE - 1
                 10.0,
                 10.0,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
                 false,
                 false,
                 false,
@@ -76,6 +86,7 @@ impl Game {
             piston_window::Key::E => self.player.is_moving_backward = true,
             piston_window::Key::RCtrl => self.player.is_shooting = true,
             piston_window::Key::LCtrl => self.player.is_shooting = true,
+
             _ => {}
         };
     }
@@ -115,6 +126,7 @@ impl Game {
         //let light_object: Enemy = enemy::Enemy::new(50.0, 50.0, 50.0, 1.0, 1000, enemy::EnemyType::Point);
 
         let object_size = 25.0;
+        const room_size:f64 = 60.0;
 
         let canvas_vec: Vec<Vec<usize>> = self.player.projectiles.par_iter_mut().enumerate().map(|(index_row, projectile_row)| {
             let mut canvas_line: Vec<usize> = [0; 250].to_vec();
@@ -132,43 +144,30 @@ impl Game {
                         5 => CYAN,
                         6 => MAGENTA,
                         _ => WHITE, */
-                        if projectile.x <= -100.0 {
+                        if projectile.x <= -room_size {
                             canvas_line[index_column] = 1;
-                            if is_enemy_found {
-                                break;
-                            }
-                            
+                            break;   
                         }
-                        if projectile.x >= 200.0 {
+                        if projectile.x >= room_size {
                             canvas_line[index_column] = 2;
-                            if is_enemy_found {
-                                break;
-                            }
+                            break;                         
                         }
 
-                        if projectile.z <= -100.0 {
+                        if projectile.z <= -room_size {
                             canvas_line[index_column] = 3;
-                            if is_enemy_found {
-                                break;
-                            }
+                            break;                        
                         }
-                        if projectile.z >= 400.0 {
+                        if projectile.z >= room_size {
                             canvas_line[index_column] = 4;
-                            if is_enemy_found {
-                                break;
-                            }
+                            break;                            
                         }
-                        if projectile.y <= -100.0 {
+                        if projectile.y <= -room_size {
                             canvas_line[index_column] = 5;
-                            if is_enemy_found {
-                                break;
-                            }
+                            break;                            
                         }
-                        if projectile.y >= 400.0 {
+                        if projectile.y >= room_size {
                             canvas_line[index_column] = 6;
-                            if is_enemy_found {
-                                break;
-                            }
+                            break;                            
                         }
 
 
