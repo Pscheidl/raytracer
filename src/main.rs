@@ -78,19 +78,9 @@ fn main() {
 
             for color_row in 0..result.len() {
                 for color_num in 0..result[color_row].len()  {
-                    let color = match result[color_row][color_num] {
-                        0 => GRAY,
-                        1 => GREEN,
-                        2 => RED,
-                        3 => BLUE,
-                        4 => YELLOW,
-                        5 => CYAN,
-                        6 => MAGENTA,
-                        _ => WHITE,
-                    };
                 let scaled_x = color_num * 3;
                 let scaled_z = color_row * 3;
-                draw_rectange( color, scaled_x as f64, scaled_z as f64, 3, 3, &c, g);
+                draw_rectange( result[color_row][color_num], scaled_x as f64, scaled_z as f64, 3, 3, &c, g);
                 }
             }
                     

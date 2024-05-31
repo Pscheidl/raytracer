@@ -8,6 +8,7 @@ pub struct Projectile {
     pub z: f64,
     pub yaw: f64,
     pub pitch: f64,
+    pub time_to_live: f64,
 }
 
 impl Projectile {
@@ -17,13 +18,15 @@ impl Projectile {
         z: f64,
         yaw: f64,
         pitch: f64,
+        time_to_live: f64,
     ) -> Projectile {
         Projectile {
             x,
             y,
             z,
             yaw,
-            pitch,            
+            pitch,
+            time_to_live,
         }
     }
 }

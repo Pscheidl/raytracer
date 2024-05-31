@@ -116,7 +116,8 @@ impl Player {
                     self.y,
                     self.z,
                     (-0.8 + 1.8 / 250.0 * x as f64).atan(),   // -46 to 46 LEFT RIGHT
-                    (-0.8 + 1.8 / 250.0 * y as f64).atan()  // -46 to 46 UP DOWN
+                    (-0.8 + 1.8 / 250.0 * y as f64).atan(), // -46 to 46 UP DOWN
+                    1.0 // 1.0 max brightness 0.0 dead
                 );
             }
         }
