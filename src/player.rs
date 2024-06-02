@@ -52,7 +52,7 @@ impl Player {
         is_roll_left: bool,
         is_roll_right: bool,
         is_shooting: bool, 
-        projectiles: [[Projectile; 250]; 250],//Vec<Projectile>,
+        projectiles: [[Projectile; 250]; 250], //Vec<Projectile>,
         shooting_timer: usize,
     ) -> Player {
         Player {
@@ -110,13 +110,24 @@ impl Player {
 
         for y in 0..250 {
             for x in 0..250 { //WINDOW_WIDTH
+                let mut delta_x = (-3.0 + 6.0 / 250.0 * x as f64);
+                let mut delta_y = (-3.0 + 6.0 / 250.0 * y as f64);
+                let mut delta_z: f64 = 1.0;
+                let vec_len = (delta_x.powf(2.0) + delta_y.powf(2.0) + delta_z.powf(2.0)).sqrt();
                 
+                delta_x /= vec_len;
+                delta_y /= vec_len;
+                delta_z /= vec_len;
+
                 self.projectiles[y][x] = Projectile::new(
                     self.x,
                     self.y,
                     self.z,
-                    (-0.8 + 1.8 / 250.0 * x as f64).atan(),   // -46 to 46 LEFT RIGHT
-                    (-0.8 + 1.8 / 250.0 * y as f64).atan(), // -46 to 46 UP DOWN
+                    delta_x,
+                    delta_y,
+                    delta_z,
+                    //(-0.8 + 1.8 / 250.0 * x as f64).atan(),   // -46 to 46 LEFT RIGHT
+                    //(-0.8 + 1.8 / 250.0 * y as f64).atan(), // -46 to 46 UP DOWN
                     1.0 // 1.0 max brightness 0.0 dead
                 );
             }

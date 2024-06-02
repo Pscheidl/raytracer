@@ -77,7 +77,7 @@ fn main() {
             let result = game.compute_one_tick(&c, g);
 
             for color_row in 0..result.len() {
-                for color_num in 0..result[color_row].len()  {
+                for color_num in 0..result[color_row].len() {
                 let scaled_x = color_num * 3;
                 let scaled_z = color_row * 3;
                 draw_rectange( result[color_row][color_num], scaled_x as f64, scaled_z as f64, 3, 3, &c, g);
