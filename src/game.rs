@@ -50,8 +50,8 @@ impl Game {
             frame_buffer_next_tick: [[false; FRAME_BUFFER_Y]; FRAME_BUFFER_X],
             player: player::Player::new(
                 0 as f64,
-                -91 as f64,
-                0.0, // ROOM SIZE - 1
+                0 as f64,
+                 -199.0, // ROOM SIZE - 1
                 10.0,
                 10.0,
                 false,
@@ -155,21 +155,21 @@ impl Game {
                     }                    
 
                     projectile.x += projectile.dx;  //cos or sin
-                        projectile.z += projectile.dy;
-                        projectile.y += projectile.dz;
+                    projectile.y += projectile.dy;
+                    projectile.z += projectile.dz;
 
-                    
+                    projectile.time_to_live -= 0.0006;
                     if (is_enemy_found) {
-                        projectile.time_to_live -= 0.0006;
+                        
                         continue;
                     }
                     
                     for (index, enemy) in self.enemies.iter().enumerate() {
                         let object_size = enemy.size;
                         
-                        let enemy_x_moved_core = enemy.x - self.player.x;
-                        let enemy_z_moved_core = enemy.z - self.player.z;
+                        let enemy_x_moved_core = enemy.x - self.player.x;                        
                         let enemy_y_moved_core = enemy.y - self.player.y;
+                        let enemy_z_moved_core = enemy.z - self.player.z;
                         
                         let len_from_core = ((enemy_x_moved_core-projectile.x).powf(2.0) + (enemy_y_moved_core-projectile.y).powf(2.0) + (enemy_z_moved_core-projectile.z).powf(2.0)).sqrt();
                         
