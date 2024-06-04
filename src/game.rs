@@ -41,17 +41,17 @@ impl Game {
         /* Y - | +down
            X - -  +right
            Z - / +far*/
-        //enemies.push(enemy::Enemy::new(-250.0, 0.0, 0.0, 100.0, 1000, enemy::EnemyType::Sphere));
-        //enemies.push(enemy::Enemy::new(250.0, 0.0, 0.0, 100.0, 1000, enemy::EnemyType::Sphere));
-        enemies.push(enemy::Enemy::new(0.0, 0.0, 0.0, 200.0, 1000, enemy::EnemyType::Sphere));
+        //enemies.push(enemy::Enemy::new(250.0, 200.0, 300.0, 100.0, 1000, enemy::EnemyType::Sphere, -5.0));
+        //enemies.push(enemy::Enemy::new(250.0, 200.0, 300.0, 100.0, 1000, enemy::EnemyType::Sphere, -3.0));
+        enemies.push(enemy::Enemy::new(200.0, 200.0, 300.0, 100.0, 1000, enemy::EnemyType::Sphere, 5.0));
 
         Game {
             frame_buffer: temp_world,
             frame_buffer_next_tick: [[false; FRAME_BUFFER_Y]; FRAME_BUFFER_X],
             player: player::Player::new(
-                0 as f64,
-                0 as f64,
-                 -199.0, // ROOM SIZE - 1
+                200 as f64,
+                200 as f64,
+                 2.0, // ROOM SIZE - 1
                 10.0,
                 10.0,
                 false,
@@ -116,7 +116,11 @@ impl Game {
          g: &mut piston_window::G2d) -> Vec<Vec<Color>> {
 
         
-        const ROOM_SIZE:f64 = 200.0;
+        for (index, enemy) in self.enemies.iter_mut().enumerate() {
+            enemy.move_enemy(ROOM_SIZE);
+        }
+
+        const ROOM_SIZE:f64 = 400.0;
 
         let canvas_vec: Vec<Vec<Color>> = self.player.projectiles.par_iter_mut().enumerate().map(|(index_row, projectile_row)| {
             let mut canvas_line: Vec<Color> = [[0.0, 0.0, 0.0, 0.0]; 250].to_vec();
@@ -124,33 +128,74 @@ impl Game {
                 
                 let mut is_enemy_found = false;
                 
-                for _ in 0..2000 { 
+                for _ in 0..20000 { 
 
-                    if projectile.x <= -ROOM_SIZE { // right
-                        canvas_line[index_column] = [projectile.time_to_live as f32, 0.0, 0.0, 1.0]; // red
+                    if projectile.x <= 0.0 { // right
+                        if ((projectile.y as i32/25) % 2 == 0) {
+                            canvas_line[index_column] = [projectile.time_to_live as f32, 0.0, 0.0, 1.0]; // red
+                        } else if ((projectile.z as i32/25) % 2 == 0) {
+                            canvas_line[index_column] = [projectile.time_to_live as f32, 0.2, 0.2, 1.0]; // light red
+                        } else {
+                            canvas_line[index_column] = [projectile.time_to_live as f32, 0.4, 0.4, 1.0]; // lighter red
+                        }
+                        
                         break;   
                     }
                     if projectile.x >= ROOM_SIZE { // left
-                        canvas_line[index_column] = [0.0, projectile.time_to_live as f32, 0.0, 1.0]; // green
+                        
+                        if ((projectile.y as i32/25) % 2 == 0) {
+                            canvas_line[index_column] = [0.0, projectile.time_to_live as f32, 0.0, 1.0]; // green
+                        } else if ((projectile.z as i32/25) % 2 == 0) {
+                            canvas_line[index_column] = [0.2, projectile.time_to_live as f32, 0.2, 1.0]; // light green
+                        } else {
+                            canvas_line[index_column] = [0.4, projectile.time_to_live as f32, 0.4, 1.0]; // light green
+                        }
                         break;                         
                     }
 
-                    if projectile.z <= -ROOM_SIZE { // top
-                        canvas_line[index_column] = [0.0, projectile.time_to_live as f32, projectile.time_to_live as f32, 1.0];  // cyan                        
+                    if projectile.z <= 0.0 { // top                        
+                        if ((projectile.x as i32/25) % 2 == 0) {
+                            canvas_line[index_column] = [0.0, projectile.time_to_live as f32, projectile.time_to_live as f32, 1.0];  // cyan  
+                        } else if ((projectile.y as i32/25) % 2 == 0) {
+                            canvas_line[index_column] = [0.2, projectile.time_to_live as f32, projectile.time_to_live as f32, 1.0];  // light cyan  
+                        } else {
+                            canvas_line[index_column] = [0.4, projectile.time_to_live as f32, projectile.time_to_live as f32, 1.0];  // lighter cyan  
+                        }
+                                              
                         break;                        
                     }
                     if projectile.z >= ROOM_SIZE { // bottom
-                        canvas_line[index_column] = [projectile.time_to_live as f32, projectile.time_to_live as f32, 0.0, 1.0];  // yellow
+                        if ((projectile.x as i32/25) % 2 == 0) {
+                            canvas_line[index_column] = [projectile.time_to_live as f32, projectile.time_to_live as f32, 0.0, 1.0];  // yellow
+                        } else if ((projectile.y as i32/25) % 2 == 0) {
+                            canvas_line[index_column] = [projectile.time_to_live as f32, projectile.time_to_live as f32, 0.2, 1.0];  // light yellow
+                        } else {
+                            canvas_line[index_column] = [projectile.time_to_live as f32, projectile.time_to_live as f32, 0.4, 1.0];  // lighter yellow
+                        }
+                        
                         break;                            
                     }
-                    if projectile.y <= -ROOM_SIZE { // front
-                        //canvas_line[index_column] = [projectile.time_to_live as f32, 0.0, projectile.time_to_live as f32, 1.0];  // pink
-                        canvas_line[index_column] = [projectile.time_to_live as f32, projectile.time_to_live as f32, projectile.time_to_live as f32, 1.0];  // white
+                    if projectile.y <= 0.0 { // front
+                       
+                        if ((projectile.x as i32/25) % 2 == 0) {
+                            canvas_line[index_column] = [projectile.time_to_live as f32, 0.0, projectile.time_to_live as f32, 1.0];  // pink
+                        } else if ((projectile.z as i32/25) % 2 == 0) {
+                            canvas_line[index_column] = [projectile.time_to_live as f32, 0.2, projectile.time_to_live as f32, 1.0];  // light pink
+                        } else {
+                            canvas_line[index_column] = [projectile.time_to_live as f32, 0.4, projectile.time_to_live as f32, 1.0];  // lighter pink
+                        }
+                        
+                                                
                         break;                            
                     }
                     if projectile.y >= ROOM_SIZE { // back
-                        canvas_line[index_column] = [0.0, 0.0, projectile.time_to_live as f32, 1.0]; // blue
-                        
+                        if ((projectile.x as i32/25) % 2 == 0) {
+                            canvas_line[index_column] = [0.0, 0.0, projectile.time_to_live as f32, 1.0]; // blue
+                        } else if ((projectile.z as i32/25) % 2 == 0) {
+                            canvas_line[index_column] = [0.2, 0.2, projectile.time_to_live as f32, 1.0]; // light blue    
+                        } else {
+                            canvas_line[index_column] = [0.4, 0.4, projectile.time_to_live as f32, 1.0]; // lighter blue    
+                        }      
                         break;                            
                     }                    
 
@@ -158,23 +203,27 @@ impl Game {
                     projectile.y += projectile.dy;
                     projectile.z += projectile.dz;
 
-                    projectile.time_to_live -= 0.0006;
+                    projectile.time_to_live -= 0.0002;
+                    
                     if (is_enemy_found) {
-                        
                         continue;
                     }
-                    
-                    for (index, enemy) in self.enemies.iter().enumerate() {
+
+                    for (index, enemy) in self.enemies.iter().enumerate() {                        
+
+                        
+
+                        //print!("{}", enemy.x);
                         let object_size = enemy.size;
                         
-                        let enemy_x_moved_core = enemy.x - self.player.x;                        
-                        let enemy_y_moved_core = enemy.y - self.player.y;
-                        let enemy_z_moved_core = enemy.z - self.player.z;
+                        let enemy_x_moved_core = enemy.x;          
+                        let enemy_y_moved_core = enemy.y;
+                        let enemy_z_moved_core = enemy.z;
                         
                         let len_from_core = ((enemy_x_moved_core-projectile.x).powf(2.0) + (enemy_y_moved_core-projectile.y).powf(2.0) + (enemy_z_moved_core-projectile.z).powf(2.0)).sqrt();
                         
                         
-                        if len_from_core + 0.5 >= object_size && len_from_core - 0.5 <= object_size
+                        if len_from_core + 0.3 >= object_size && len_from_core - 0.3 <= object_size
                         && !is_enemy_found {
 
                             is_enemy_found = true;
@@ -191,11 +240,12 @@ impl Game {
     
                             // R=V−2N(V⋅N)
                             // R=RAY-2*NORMAL(RAY*NORMAL)
-                            projectile.dx = projectile.dx - 2.0*ball_vec_norm_x*(projectile.dx*ball_vec_norm_x);//-ball_vec_norm_x*projectile.x;
-                            projectile.dy = projectile.dy - 2.0*ball_vec_norm_y*(projectile.dy*ball_vec_norm_y);//-ball_vec_norm_y*projectile.y;
-                            projectile.dz = projectile.dz - 2.0*ball_vec_norm_z*(projectile.dz*ball_vec_norm_z);//-ball_vec_norm_z*projectile.z;
+                            projectile.dx = projectile.dx - 2.0*ball_vec_norm_x*(projectile.dx*ball_vec_norm_x);
+                            projectile.dy = projectile.dy - 2.0*ball_vec_norm_y*(projectile.dy*ball_vec_norm_y);
+                            projectile.dz = projectile.dz - 2.0*ball_vec_norm_z*(projectile.dz*ball_vec_norm_z);
 
                         }
+                        
                     }
                 }
             }
@@ -228,7 +278,7 @@ mod tests {
     #[test]
     fn collision_test() {
         let projectile = Projectile{x: 1.0, y: 1.0, z: 1.0, dx:0.0, dy:0.0, dz:0.0, time_to_live: 1.0};
-        let enemy = Enemy{ x: 0.0, y: 0.0, z: 0.0, size: 2.0, time_to_live: 1000, enemy_type: crate::enemy::EnemyType::Sphere };
+        let enemy = Enemy{ x: 0.0, y: 0.0, z: 0.0, size: 2.0, time_to_live: 1000, enemy_type: crate::enemy::EnemyType::Sphere, moving_left_speed: 0.1};
         let result = Game::getPitchAndYawBounceFromBall(projectile, enemy, 1.0);
         assert_eq!(result, (1.0, 1.0));
     }

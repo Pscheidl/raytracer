@@ -112,8 +112,8 @@ impl Player {
             for x in 0..250 { //WINDOW_WIDTH
                 let mut delta_x = (-3.0 + 6.0 / 250.0 * x as f64);
                 let mut delta_y = (-3.0 + 6.0 / 250.0 * y as f64);
-                let mut delta_z: f64 = 1.0;
-                let vec_len = (delta_x.powf(2.0) + delta_y.powf(2.0) + delta_z.powf(2.0)).sqrt();
+                let mut delta_z: f64 = 2.0;
+                let vec_len = (delta_x.powf(2.0) + delta_y.powf(2.0) + delta_z.powf(2.0)).sqrt()*2.0;  // 2 = 2x slower ray
                 
                 delta_x /= vec_len;
                 delta_y /= vec_len;

@@ -19,6 +19,7 @@ pub struct Enemy {
     pub size: f64,
     pub time_to_live: usize,
     pub enemy_type: EnemyType,
+    pub moving_left_speed: f64,
 }
 
 impl Enemy {
@@ -29,6 +30,7 @@ impl Enemy {
         size: f64,
         time_to_live: usize,
         enemy_type: EnemyType,
+        moving_left_speed: f64,
     ) -> Enemy {
         Enemy {
             x,
@@ -36,7 +38,18 @@ impl Enemy {
             z,
             size: size,
             time_to_live,
-            enemy_type,     
+            enemy_type,
+            moving_left_speed,
+        }
+    }
+
+    pub fn move_enemy(&mut self, room_size: f64) {
+        self.x += self.moving_left_speed;
+        // move enemy
+        if self.x + self.size  >= room_size {
+            self.moving_left_speed = -5.0;
+        } else if self.x - self.size  <= 0.0 {
+            self.moving_left_speed = 5.0;
         }
     }
 }

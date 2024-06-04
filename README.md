@@ -2,7 +2,12 @@
 
 Raycast engine written in Rust.
 
-29.6.2024 version - 3D raytracer - fixed perspective, travel of the ray ends on the wall
+
+4.6.2024 version - 3D raytracer - fixed bouncing ray of the mirror ball, more colors, moving ball
+
+<img alt="Description" src="https://github.com/PavelVavruska/raytracer/blob/master/raytracer_20240604.png">
+
+29.5.2024 version - 3D raytracer - fixed perspective, travel of the ray ends on the wall
 
 <img alt="Description" src="https://github.com/PavelVavruska/raytracer/blob/master/raytracer_20240529.png">
 
