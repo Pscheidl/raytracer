@@ -1,6 +1,3 @@
-use crate::WINDOW_WIDTH;
-use crate::player::WIDTH;
-
 #[derive(Copy, Clone, Debug)]
 pub struct Projectile {
     pub x: f64,

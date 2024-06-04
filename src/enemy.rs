@@ -1,9 +1,3 @@
-use crate::WINDOW_WIDTH;
-
-pub const WIDTH: usize = 150;
-pub const HEIGHT: usize = 150;
-
-
 #[derive(Copy, Clone)]
 pub enum EnemyType {
     Point,
@@ -20,6 +14,7 @@ pub struct Enemy {
     pub time_to_live: usize,
     pub enemy_type: EnemyType,
     pub moving_left_speed: f64,
+    pub moving_right_speed: f64,
 }
 
 impl Enemy {
@@ -31,6 +26,7 @@ impl Enemy {
         time_to_live: usize,
         enemy_type: EnemyType,
         moving_left_speed: f64,
+        moving_right_speed: f64,
     ) -> Enemy {
         Enemy {
             x,
@@ -40,16 +36,25 @@ impl Enemy {
             time_to_live,
             enemy_type,
             moving_left_speed,
+            moving_right_speed,
         }
     }
 
-    pub fn move_enemy(&mut self, room_size: f64) {
+    pub fn move_enemy(&mut self, room_size_x: f64,room_size_y: f64) {
         self.x += self.moving_left_speed;
         // move enemy
-        if self.x + self.size  >= room_size {
+        if self.x + self.size  >= room_size_x {
             self.moving_left_speed = -5.0;
         } else if self.x - self.size  <= 0.0 {
             self.moving_left_speed = 5.0;
+        }
+
+        self.y += self.moving_right_speed;
+        // move enemy
+        if self.y + self.size  >= room_size_y {
+            self.moving_right_speed = -5.0;
+        } else if self.y - self.size  <= 0.0 {
+            self.moving_right_speed = 5.0;
         }
     }
 }

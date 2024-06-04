@@ -1,12 +1,5 @@
-use std::f64::consts::PI;
-use std::collections::btree_set::Range;
 
-use crate::{WINDOW_WIDTH, WINDOW_HEIGHT, projectile::{Projectile, self}};
-
-const MAX_VELOCITY_X:f64 = 1.0;
-const MAX_VELOCITY_Y:f64 = 1.0;
-pub const WIDTH:usize= 20*4;
-pub const HEIGHT:usize= 20*4;
+use crate::{projectile::{Projectile, self}};
 
 
 pub struct Player {
@@ -108,26 +101,21 @@ impl Player {
             self.y -= 3.1;
         }
 
-        for y in 0..250 {
-            for x in 0..250 { //WINDOW_WIDTH
-                let mut delta_x = (-3.0 + 6.0 / 250.0 * x as f64);
-                let mut delta_y = (-3.0 + 6.0 / 250.0 * y as f64);
-                let mut delta_z: f64 = 2.0;
-                let vec_len = (delta_x.powf(2.0) + delta_y.powf(2.0) + delta_z.powf(2.0)).sqrt()*2.0;  // 2 = 2x slower ray
-                
-                delta_x /= vec_len;
-                delta_y /= vec_len;
-                delta_z /= vec_len;
+        let delta_z: f64 = 2.0;    
+        for y in 0..250 { // WINDOW_HEIGHT
+            let delta_y = -3.0 + 6.0 / 250.0 * y as f64;   
+
+            for x in 0..250 { // WINDOW_WIDTH
+                let delta_x = -3.0 + 6.0 / 250.0 * x as f64;                
+                let vec_len = (delta_x.powf(2.0) + delta_y.powf(2.0) + delta_z.powf(2.0)).sqrt();                
 
                 self.projectiles[y][x] = Projectile::new(
                     self.x,
                     self.y,
                     self.z,
-                    delta_x,
-                    delta_y,
-                    delta_z,
-                    //(-0.8 + 1.8 / 250.0 * x as f64).atan(),   // -46 to 46 LEFT RIGHT
-                    //(-0.8 + 1.8 / 250.0 * y as f64).atan(), // -46 to 46 UP DOWN
+                    delta_x / vec_len,
+                    delta_y / vec_len,
+                    delta_z / vec_len,
                     1.0 // 1.0 max brightness 0.0 dead
                 );
             }

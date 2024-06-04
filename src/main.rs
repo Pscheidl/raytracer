@@ -11,10 +11,8 @@ use drawing::to_gui_coord_u32;
 use game::Game;
 use piston_window::types::Color;
 use piston_window::*;
-use piston_window::color::{WHITE, RED, BLUE, GREEN, YELLOW, GRAY, CYAN, MAGENTA, MAROON};
 
 const BACK_COLOR: Color = [0.0, 0.0, 0.0, 1.0];
-// ZX Spectrum resolution 256×192
 const WINDOW_WIDTH: usize = 256*3;
 const WINDOW_HEIGHT: usize = 192*4+30;
 
@@ -29,8 +27,7 @@ pub struct Pos {
 }
 
 fn main() {
-    // Prepare fonts
-   
+    // Prepare fonts   
     // Prepare window settings
     let mut window_settings = piston_window::WindowSettings::new(
         "Raycaster",
@@ -51,10 +48,7 @@ fn main() {
     let assets = find_folder::Search::ParentsThenKids(3, 3)
         .for_folder("assets").unwrap();
     let mut glyphs = window.load_font(assets.join("FiraSans-Regular.ttf")).unwrap();
-    let mut game_score:usize = 0;
-    // how to text https://github.com/PistonDevelopers/piston-examples/blob/master/examples/hello_world.rs
 
-    let mut is_player_dead = false;
 
     // Create a world
     let mut game = Game::new();
@@ -74,7 +68,7 @@ fn main() {
         window.draw_2d(&event, |c, g, device| {
             piston_window::clear(BACK_COLOR, g);
             
-            let result = game.compute_one_tick(&c, g);
+            let result = game.compute_one_tick();
 
             for color_row in 0..result.len() {
                 for color_num in 0..result[color_row].len() {

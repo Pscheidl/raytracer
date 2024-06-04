@@ -1,28 +1,15 @@
-use std::f64::consts::PI;
-
-use super::WINDOW_HEIGHT;
-use super::WINDOW_WIDTH;
-use crate::enemy::Enemy;
 use crate::player;
-use crate::drawing::draw_rectange;
+
 use crate::enemy;
-use crate::player::Player;
-use crate::projectile;
-use piston_window::color::{WHITE, RED, BLUE, GREEN, YELLOW, GRAY};
+
 use piston_window::types::Color;
 use crate::projectile::Projectile;
-use rayon::iter::Enumerate;
 use rayon::prelude::*;
 
-const WINDOW_X_OFFSET: f64 = 950.0; //256;
-const WINDOW_Y_OFFSET: f64 = 300.0; //192;
-const FRAME_BUFFER_X: usize = 2; 
-const FRAME_BUFFER_Y: usize = 2; 
+
 
 pub struct Game {
     // World buffers
-    pub frame_buffer: [[bool; FRAME_BUFFER_Y]; FRAME_BUFFER_X],
-    pub frame_buffer_next_tick: [[bool; FRAME_BUFFER_Y]; FRAME_BUFFER_X],
     pub player: player::Player,
     pub enemies: Vec<enemy::Enemy>,
     pub enemy_spawn_difficulty: usize,
@@ -31,8 +18,7 @@ pub struct Game {
 
 impl Game {
     pub fn new() -> Game {
-        // randomize world
-        let temp_world = [[false; FRAME_BUFFER_Y]; FRAME_BUFFER_X];
+
         let mut enemies =  Vec::new();
         /*
         E N E M Y
@@ -43,15 +29,13 @@ impl Game {
            Z - / +far*/
         //enemies.push(enemy::Enemy::new(250.0, 200.0, 300.0, 100.0, 1000, enemy::EnemyType::Sphere, -5.0));
         //enemies.push(enemy::Enemy::new(250.0, 200.0, 300.0, 100.0, 1000, enemy::EnemyType::Sphere, -3.0));
-        enemies.push(enemy::Enemy::new(200.0, 200.0, 300.0, 100.0, 1000, enemy::EnemyType::Sphere, 5.0));
+        enemies.push(enemy::Enemy::new(125.0, 225.0, 300.0, 100.0, 1000, enemy::EnemyType::Sphere, 5.0, 5.0));
 
         Game {
-            frame_buffer: temp_world,
-            frame_buffer_next_tick: [[false; FRAME_BUFFER_Y]; FRAME_BUFFER_X],
             player: player::Player::new(
                 200 as f64,
-                200 as f64,
-                 2.0, // ROOM SIZE - 1
+                225 as f64,
+                100.0,
                 10.0,
                 10.0,
                 false,
@@ -112,28 +96,32 @@ impl Game {
     }  
 
     /// Draws entire world.
-    pub fn compute_one_tick(&mut self, con: &piston_window::Context,
-         g: &mut piston_window::G2d) -> Vec<Vec<Color>> {
+    pub fn compute_one_tick(&mut self) -> Vec<Vec<Color>> {
 
-        
-        for (index, enemy) in self.enemies.iter_mut().enumerate() {
-            enemy.move_enemy(ROOM_SIZE);
+        const ROOM_SIZE_X:f64 = 400.0;
+        const ROOM_SIZE_Y:f64 = 450.0;
+        const ROOM_SIZE_Z:f64 = 400.0;
+
+        for enemy in self.enemies.iter_mut() {
+            enemy.move_enemy(ROOM_SIZE_X, ROOM_SIZE_Y);
         }
 
-        const ROOM_SIZE:f64 = 400.0;
 
-        let canvas_vec: Vec<Vec<Color>> = self.player.projectiles.par_iter_mut().enumerate().map(|(index_row, projectile_row)| {
+        let canvas_vec: Vec<Vec<Color>> = self.player.projectiles.par_iter_mut().map(|projectile_row| {
             let mut canvas_line: Vec<Color> = [[0.0, 0.0, 0.0, 0.0]; 250].to_vec();
             for (index_column, projectile) in projectile_row.iter_mut().enumerate() {
                 
                 let mut is_enemy_found = false;
                 
-                for _ in 0..20000 { 
+                for _x in 1..10000 { // not using loop for debug
+                    let is_x_alternate = (projectile.x as i32/25) % 2 == 0;
+                    let is_y_alternate = (projectile.y as i32/25) % 2 == 0;
+                    let is_z_alternate = (projectile.z as i32/25) % 2 == 0;
 
                     if projectile.x <= 0.0 { // right
-                        if ((projectile.y as i32/25) % 2 == 0) {
-                            canvas_line[index_column] = [projectile.time_to_live as f32, 0.0, 0.0, 1.0]; // red
-                        } else if ((projectile.z as i32/25) % 2 == 0) {
+                        if is_y_alternate {
+                            canvas_line[index_column] = [projectile.time_to_live as f32, 0.0, 0.0, 1.0]; // red    
+                        } else if is_z_alternate {
                             canvas_line[index_column] = [projectile.time_to_live as f32, 0.2, 0.2, 1.0]; // light red
                         } else {
                             canvas_line[index_column] = [projectile.time_to_live as f32, 0.4, 0.4, 1.0]; // lighter red
@@ -141,11 +129,10 @@ impl Game {
                         
                         break;   
                     }
-                    if projectile.x >= ROOM_SIZE { // left
-                        
-                        if ((projectile.y as i32/25) % 2 == 0) {
+                    if projectile.x >= ROOM_SIZE_X { // left                        
+                        if is_y_alternate {
                             canvas_line[index_column] = [0.0, projectile.time_to_live as f32, 0.0, 1.0]; // green
-                        } else if ((projectile.z as i32/25) % 2 == 0) {
+                        } else if is_z_alternate {
                             canvas_line[index_column] = [0.2, projectile.time_to_live as f32, 0.2, 1.0]; // light green
                         } else {
                             canvas_line[index_column] = [0.4, projectile.time_to_live as f32, 0.4, 1.0]; // light green
@@ -154,44 +141,39 @@ impl Game {
                     }
 
                     if projectile.z <= 0.0 { // top                        
-                        if ((projectile.x as i32/25) % 2 == 0) {
+                        if is_x_alternate {
                             canvas_line[index_column] = [0.0, projectile.time_to_live as f32, projectile.time_to_live as f32, 1.0];  // cyan  
-                        } else if ((projectile.y as i32/25) % 2 == 0) {
+                        } else if is_y_alternate {
                             canvas_line[index_column] = [0.2, projectile.time_to_live as f32, projectile.time_to_live as f32, 1.0];  // light cyan  
                         } else {
                             canvas_line[index_column] = [0.4, projectile.time_to_live as f32, projectile.time_to_live as f32, 1.0];  // lighter cyan  
-                        }
-                                              
+                        }                                              
                         break;                        
                     }
-                    if projectile.z >= ROOM_SIZE { // bottom
-                        if ((projectile.x as i32/25) % 2 == 0) {
+                    if projectile.z >= ROOM_SIZE_Z { // bottom
+                        if is_x_alternate {
                             canvas_line[index_column] = [projectile.time_to_live as f32, projectile.time_to_live as f32, 0.0, 1.0];  // yellow
-                        } else if ((projectile.y as i32/25) % 2 == 0) {
+                        } else if is_y_alternate {
                             canvas_line[index_column] = [projectile.time_to_live as f32, projectile.time_to_live as f32, 0.2, 1.0];  // light yellow
                         } else {
                             canvas_line[index_column] = [projectile.time_to_live as f32, projectile.time_to_live as f32, 0.4, 1.0];  // lighter yellow
-                        }
-                        
+                        }                        
                         break;                            
                     }
-                    if projectile.y <= 0.0 { // front
-                       
-                        if ((projectile.x as i32/25) % 2 == 0) {
+                    if projectile.y <= 0.0 { // front                       
+                        if is_x_alternate {
                             canvas_line[index_column] = [projectile.time_to_live as f32, 0.0, projectile.time_to_live as f32, 1.0];  // pink
-                        } else if ((projectile.z as i32/25) % 2 == 0) {
+                        } else if is_z_alternate {
                             canvas_line[index_column] = [projectile.time_to_live as f32, 0.2, projectile.time_to_live as f32, 1.0];  // light pink
                         } else {
                             canvas_line[index_column] = [projectile.time_to_live as f32, 0.4, projectile.time_to_live as f32, 1.0];  // lighter pink
-                        }
-                        
-                                                
+                        }                
                         break;                            
                     }
-                    if projectile.y >= ROOM_SIZE { // back
-                        if ((projectile.x as i32/25) % 2 == 0) {
+                    if projectile.y >= ROOM_SIZE_Y { // back
+                        if is_x_alternate {
                             canvas_line[index_column] = [0.0, 0.0, projectile.time_to_live as f32, 1.0]; // blue
-                        } else if ((projectile.z as i32/25) % 2 == 0) {
+                        } else if is_z_alternate {
                             canvas_line[index_column] = [0.2, 0.2, projectile.time_to_live as f32, 1.0]; // light blue    
                         } else {
                             canvas_line[index_column] = [0.4, 0.4, projectile.time_to_live as f32, 1.0]; // lighter blue    
@@ -203,28 +185,32 @@ impl Game {
                     projectile.y += projectile.dy;
                     projectile.z += projectile.dz;
 
-                    projectile.time_to_live -= 0.0002;
+                    /*if projectile.time_to_live > 0.5 {
+                        projectile.time_to_live -= 0.0004; // add fake shadow effect
+                    }*/
                     
-                    if (is_enemy_found) {
+                    
+                    if is_enemy_found {
                         continue;
                     }
 
-                    for (index, enemy) in self.enemies.iter().enumerate() {                        
-
-                        
-
-                        //print!("{}", enemy.x);
+                    for enemy in self.enemies.iter() {
                         let object_size = enemy.size;
-                        
-                        let enemy_x_moved_core = enemy.x;          
-                        let enemy_y_moved_core = enemy.y;
-                        let enemy_z_moved_core = enemy.z;
-                        
-                        let len_from_core = ((enemy_x_moved_core-projectile.x).powf(2.0) + (enemy_y_moved_core-projectile.y).powf(2.0) + (enemy_z_moved_core-projectile.z).powf(2.0)).sqrt();
-                        
-                        
-                        if len_from_core + 0.3 >= object_size && len_from_core - 0.3 <= object_size
-                        && !is_enemy_found {
+                        let object_size_plus_error = object_size + 0.4;
+
+                        // Manhattan distance filter
+                        let dx = enemy.x - projectile.x;
+                        let dy = enemy.y - projectile.y;
+                        let dz = enemy.z - projectile.z;
+
+                        if dx.abs() > object_size_plus_error || dy.abs() > object_size_plus_error || dz.abs() > object_size_plus_error {
+                            continue;
+                        }
+
+                        // Compute expensive distance
+                        let len_from_core = ((dx).powf(2.0) + (dy).powf(2.0) + (dz).powf(2.0)).sqrt();
+
+                        if len_from_core + 0.5 >= object_size && len_from_core - 0.5 <= object_size {
 
                             is_enemy_found = true;
 
@@ -243,43 +229,12 @@ impl Game {
                             projectile.dx = projectile.dx - 2.0*ball_vec_norm_x*(projectile.dx*ball_vec_norm_x);
                             projectile.dy = projectile.dy - 2.0*ball_vec_norm_y*(projectile.dy*ball_vec_norm_y);
                             projectile.dz = projectile.dz - 2.0*ball_vec_norm_z*(projectile.dz*ball_vec_norm_z);
-
-                        }
-                        
+                        }                        
                     }
                 }
             }
             canvas_line
         }).collect();
         canvas_vec
-    }
-
-    pub fn getPitchAndYawBounceFromBall(projectile: Projectile, ball: Enemy, len_from_core: f64) -> (f64,f64) {
-        /*
-        TODO
-        Ball can be simplified as a circle for collision purposes.
-         */
-        let core_ball_x = ball.x;
-        let core_ball_y = ball.y;
-        let core_ball_z = ball.z;
-
-        let hit_ball_x = projectile.x;
-        let hit_ball_y = projectile.y;
-        let hit_ball_z = projectile.z;
-        
-        (0.0, 0.0)
-    }    
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::{Game, projectile::Projectile, enemy::{Enemy}};
-
-    #[test]
-    fn collision_test() {
-        let projectile = Projectile{x: 1.0, y: 1.0, z: 1.0, dx:0.0, dy:0.0, dz:0.0, time_to_live: 1.0};
-        let enemy = Enemy{ x: 0.0, y: 0.0, z: 0.0, size: 2.0, time_to_live: 1000, enemy_type: crate::enemy::EnemyType::Sphere, moving_left_speed: 0.1};
-        let result = Game::getPitchAndYawBounceFromBall(projectile, enemy, 1.0);
-        assert_eq!(result, (1.0, 1.0));
     }
 }
