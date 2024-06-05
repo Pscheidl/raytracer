@@ -1,7 +1,6 @@
 
 use crate::{projectile::{Projectile, self}};
 
-
 pub struct Player {
     pub x: f64,
     pub y: f64,
@@ -21,7 +20,7 @@ pub struct Player {
     pub is_roll_left: bool,
     pub is_roll_right: bool,
     pub is_shooting: bool,
-    pub projectiles: [[Projectile; 250]; 250],//Vec<Projectile>,
+    pub projectiles: Vec::<Vec::<Projectile>>,
     pub shooting_timer: usize,
 }
 
@@ -45,7 +44,7 @@ impl Player {
         is_roll_left: bool,
         is_roll_right: bool,
         is_shooting: bool, 
-        projectiles: [[Projectile; 250]; 250], //Vec<Projectile>,
+        projectiles: Vec::<Vec::<Projectile>>,
         shooting_timer: usize,
     ) -> Player {
         Player {
@@ -101,15 +100,19 @@ impl Player {
             self.y -= 3.1;
         }
 
-        let delta_z: f64 = 2.0;    
-        for y in 0..250 { // WINDOW_HEIGHT
-            let delta_y = -3.0 + 6.0 / 250.0 * y as f64;   
+        let delta_z: f64 = 2.0;
+        self.projectiles.clear();
 
-            for x in 0..250 { // WINDOW_WIDTH
-                let delta_x = -3.0 + 6.0 / 250.0 * x as f64;                
+        for y in 0..500 { // WINDOW_HEIGHT
+            let delta_y = -3.0 + 6.0 / 500.0 * y as f64;   
+            let mut projectile_row: Vec<Projectile> = Vec::new();
+
+            for x in 0..500 { // WINDOW_WIDTH
+                let delta_x = -3.0 + 6.0 / 500.0 * x as f64;                
                 let vec_len = (delta_x.powf(2.0) + delta_y.powf(2.0) + delta_z.powf(2.0)).sqrt();                
 
-                self.projectiles[y][x] = Projectile::new(
+                
+                projectile_row.push(Projectile::new(
                     self.x,
                     self.y,
                     self.z,
@@ -117,8 +120,9 @@ impl Player {
                     delta_y / vec_len,
                     delta_z / vec_len,
                     1.0 // 1.0 max brightness 0.0 dead
-                );
+                ));
             }
+            self.projectiles.push(projectile_row);
         }
     }
 }

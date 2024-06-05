@@ -13,8 +13,8 @@ use piston_window::types::Color;
 use piston_window::*;
 
 const BACK_COLOR: Color = [0.0, 0.0, 0.0, 1.0];
-const WINDOW_WIDTH: usize = 256*3;
-const WINDOW_HEIGHT: usize = 192*4+30;
+const WINDOW_WIDTH: usize = 500*2;
+const WINDOW_HEIGHT: usize = 500*2 + 50;
 
 pub const TEXT_COLOR: Color = [1.0, 1.0, 1.0, 1.0];
 
@@ -72,9 +72,9 @@ fn main() {
 
             for color_row in 0..result.len() {
                 for color_num in 0..result[color_row].len() {
-                let scaled_x = color_num * 3;
-                let scaled_z = color_row * 3;
-                draw_rectange( result[color_row][color_num], scaled_x as f64, scaled_z as f64, 3, 3, &c, g);
+                let scaled_x = color_num * 2;
+                let scaled_z = color_row * 2;
+                draw_rectange( result[color_row][color_num], scaled_x as f64, scaled_z as f64, 2, 2, &c, g);
                 }
             }
                     

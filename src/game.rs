@@ -28,14 +28,14 @@ impl Game {
            X - -  +right
            Z - / +far*/
         //enemies.push(enemy::Enemy::new(250.0, 200.0, 300.0, 100.0, 1000, enemy::EnemyType::Sphere, -5.0));
-        //enemies.push(enemy::Enemy::new(250.0, 200.0, 300.0, 100.0, 1000, enemy::EnemyType::Sphere, -3.0));
-        enemies.push(enemy::Enemy::new(125.0, 225.0, 300.0, 100.0, 1000, enemy::EnemyType::Sphere, 5.0, 5.0));
+        enemies.push(enemy::Enemy::new(110.0, 110.0, 300.0, 100.0, 1000, enemy::EnemyType::Sphere, 0.0, 5.0));
+        enemies.push(enemy::Enemy::new(290.0, 290.0, 100.0, 100.0, 1000, enemy::EnemyType::Sphere, 0.0, 0.0));
 
         Game {
             player: player::Player::new(
+                140 as f64,
                 200 as f64,
-                225 as f64,
-                100.0,
+                5.0,
                 10.0,
                 10.0,
                 false,
@@ -51,7 +51,7 @@ impl Game {
                 false,
                 false,
                 false,
-                [[Projectile::new(0.0,0.0,0.0,0.0,0.0,0.0, 1.0); 250]; 250],
+                Vec::new(),
                 50,
             ),
             enemies: enemies,
@@ -108,10 +108,10 @@ impl Game {
 
 
         let canvas_vec: Vec<Vec<Color>> = self.player.projectiles.par_iter_mut().map(|projectile_row| {
-            let mut canvas_line: Vec<Color> = [[0.0, 0.0, 0.0, 0.0]; 250].to_vec();
+            let mut canvas_line: Vec<Color> = [[0.0, 0.0, 0.0, 0.0]; 500].to_vec();
             for (index_column, projectile) in projectile_row.iter_mut().enumerate() {
                 
-                let mut is_enemy_found = false;
+                let mut last_ball_bounce = 255;
                 
                 for _x in 1..10000 { // not using loop for debug
                     let is_x_alternate = (projectile.x as i32/25) % 2 == 0;
@@ -185,16 +185,19 @@ impl Game {
                     projectile.y += projectile.dy;
                     projectile.z += projectile.dz;
 
-                    /*if projectile.time_to_live > 0.5 {
+                    if projectile.time_to_live > 0.5 {
                         projectile.time_to_live -= 0.0004; // add fake shadow effect
-                    }*/
-                    
-                    
-                    if is_enemy_found {
-                        continue;
                     }
+                    
+                    
+                    /*if is_enemy_found {
+                        continue;
+                    }*/
 
-                    for enemy in self.enemies.iter() {
+                    for (ball_index, enemy) in self.enemies.iter().enumerate() {
+                        if last_ball_bounce == ball_index {
+                            continue;
+                        }
                         let object_size = enemy.size;
                         let object_size_plus_error = object_size + 0.4;
 
@@ -212,7 +215,7 @@ impl Game {
 
                         if len_from_core + 0.5 >= object_size && len_from_core - 0.5 <= object_size {
 
-                            is_enemy_found = true;
+                            last_ball_bounce = ball_index;
 
                             let ball_vec_x = enemy.x - projectile.x;
                             let ball_vec_y = enemy.y - projectile.y;
