@@ -28,6 +28,7 @@ impl Game {
            X - -  +right
            Z - / +far*/
         //enemies.push(enemy::Enemy::new(250.0, 200.0, 300.0, 100.0, 1000, enemy::EnemyType::Sphere, -5.0));
+        enemies.push(enemy::Enemy::new(290.0, 110.0, 250.0, 100.0, 1000, enemy::EnemyType::Sphere, 0.0, 0.0));
         enemies.push(enemy::Enemy::new(110.0, 110.0, 150.0, 100.0, 1000, enemy::EnemyType::Sphere, 0.0, 5.0));
         enemies.push(enemy::Enemy::new(290.0, 290.0, 50.0, 100.0, 1000, enemy::EnemyType::Sphere, 0.0, 0.0));
 

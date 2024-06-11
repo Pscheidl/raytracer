@@ -2,7 +2,7 @@
 
 Raycast engine written in Rust.
 
-<img alt="Description" src="https://github.com/PavelVavruska/raytracer/blob/master/raytracer_peek_20240611.gif">
+<img alt="Description" src="https://github.com/PavelVavruska/raytracer/blob/master/raytracer_peek_20240611_2.gif">
 
 11.6.2024 - two mirror balls, higher resolution, saving rays on the heap
 
