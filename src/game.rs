@@ -28,8 +28,8 @@ impl Game {
            X - -  +right
            Z - / +far*/
         //enemies.push(enemy::Enemy::new(250.0, 200.0, 300.0, 100.0, 1000, enemy::EnemyType::Sphere, -5.0));
-        enemies.push(enemy::Enemy::new(110.0, 110.0, 300.0, 100.0, 1000, enemy::EnemyType::Sphere, 0.0, 5.0));
-        enemies.push(enemy::Enemy::new(290.0, 290.0, 100.0, 100.0, 1000, enemy::EnemyType::Sphere, 0.0, 0.0));
+        enemies.push(enemy::Enemy::new(110.0, 110.0, 150.0, 100.0, 1000, enemy::EnemyType::Sphere, 0.0, 5.0));
+        enemies.push(enemy::Enemy::new(290.0, 290.0, 50.0, 100.0, 1000, enemy::EnemyType::Sphere, 0.0, 0.0));
 
         Game {
             player: player::Player::new(
@@ -112,8 +112,9 @@ impl Game {
             for (index_column, projectile) in projectile_row.iter_mut().enumerate() {
                 
                 let mut last_ball_bounce = 255;
+                //let mut angle = 100.0;
                 
-                for _x in 1..10000 { // not using loop for debug
+                for _x in 1..50000 { // not using loop for debug
                     let is_x_alternate = (projectile.x as i32/25) % 2 == 0;
                     let is_y_alternate = (projectile.y as i32/25) % 2 == 0;
                     let is_z_alternate = (projectile.z as i32/25) % 2 == 0;
@@ -154,9 +155,9 @@ impl Game {
                         if is_x_alternate {
                             canvas_line[index_column] = [projectile.time_to_live as f32, projectile.time_to_live as f32, 0.0, 1.0];  // yellow
                         } else if is_y_alternate {
-                            canvas_line[index_column] = [projectile.time_to_live as f32, projectile.time_to_live as f32, 0.2, 1.0];  // light yellow
+                            canvas_line[index_column] = [projectile.time_to_live as f32, projectile.time_to_live as f32, 0.4, 1.0];  // light yellow
                         } else {
-                            canvas_line[index_column] = [projectile.time_to_live as f32, projectile.time_to_live as f32, 0.4, 1.0];  // lighter yellow
+                            canvas_line[index_column] = [projectile.time_to_live as f32, projectile.time_to_live as f32, 0.8, 1.0];  // lighter yellow
                         }                        
                         break;                            
                     }
@@ -179,16 +180,7 @@ impl Game {
                             canvas_line[index_column] = [0.4, 0.4, projectile.time_to_live as f32, 1.0]; // lighter blue    
                         }      
                         break;                            
-                    }                    
-
-                    projectile.x += projectile.dx;  //cos or sin
-                    projectile.y += projectile.dy;
-                    projectile.z += projectile.dz;
-
-                    if projectile.time_to_live > 0.5 {
-                        projectile.time_to_live -= 0.0004; // add fake shadow effect
-                    }
-                    
+                    }              
                     
                     /*if is_enemy_found {
                         continue;
@@ -199,7 +191,7 @@ impl Game {
                             continue;
                         }
                         let object_size = enemy.size;
-                        let object_size_plus_error = object_size + 0.4;
+                        let object_size_plus_error = object_size + 0.5;
 
                         // Manhattan distance filter
                         let dx = enemy.x - projectile.x;
@@ -212,6 +204,7 @@ impl Game {
 
                         // Compute expensive distance
                         let len_from_core = ((dx).powf(2.0) + (dy).powf(2.0) + (dz).powf(2.0)).sqrt();
+                        
 
                         if len_from_core + 0.5 >= object_size && len_from_core - 0.5 <= object_size {
 
@@ -227,13 +220,32 @@ impl Game {
                             let ball_vec_norm_y = ball_vec_y / ball_vec_len;
                             let ball_vec_norm_z = ball_vec_z / ball_vec_len;
     
-                            // R=V−2N(V⋅N)
+                            // R=V−2N(V⋅N)                                        
                             // R=RAY-2*NORMAL(RAY*NORMAL)
-                            projectile.dx = projectile.dx - 2.0*ball_vec_norm_x*(projectile.dx*ball_vec_norm_x);
-                            projectile.dy = projectile.dy - 2.0*ball_vec_norm_y*(projectile.dy*ball_vec_norm_y);
-                            projectile.dz = projectile.dz - 2.0*ball_vec_norm_z*(projectile.dz*ball_vec_norm_z);
-                        }                        
-                    }
+                            //                    ^-- dot product
+
+                            let dot_x = projectile.dx + ball_vec_norm_x;
+                            let dot_y = projectile.dy + ball_vec_norm_y;
+                            let dot_z = projectile.dz + ball_vec_norm_z;
+                            let dot_projectile_ball_norm = (dot_x.powf(2.0) + dot_y.powf(2.0) + dot_z.powf(2.0)).sqrt();
+                            let norm_dx = projectile.dx - 2.0*ball_vec_norm_x*(dot_projectile_ball_norm);
+                            let norm_dy = projectile.dy - 2.0*ball_vec_norm_y*(dot_projectile_ball_norm);
+                            let norm_dz = projectile.dz - 2.0*ball_vec_norm_z*(dot_projectile_ball_norm);
+                            let len_new_d = (norm_dx.powf(2.0) + norm_dy.powf(2.0) + norm_dz.powf(2.0)).sqrt();
+                            projectile.dx = norm_dx / len_new_d;
+                            projectile.dy = norm_dy / len_new_d;
+                            projectile.dz = norm_dz / len_new_d;
+                        }
+                    }                   
+                    projectile.x = projectile.x + projectile.dx;
+                    projectile.y = projectile.y + projectile.dy;
+                    projectile.z = projectile.z + projectile.dz;
+                    
+                    
+
+                    /*if projectile.time_to_live > 0.5 {
+                        projectile.time_to_live -= 0.0008; // add fake shadow effect
+                    }*/
                 }
             }
             canvas_line

@@ -103,13 +103,14 @@ impl Player {
         let delta_z: f64 = 2.0;
         self.projectiles.clear();
 
-        for y in 0..500 { // WINDOW_HEIGHT
-            let delta_y = -3.0 + 6.0 / 500.0 * y as f64;   
+        for ray_y in 0..500 { // WINDOW_HEIGHT
+            let delta_y = -3.0 + 6.0 / 500.0 * ray_y as f64;   
             let mut projectile_row: Vec<Projectile> = Vec::new();
 
-            for x in 0..500 { // WINDOW_WIDTH
-                let delta_x = -3.0 + 6.0 / 500.0 * x as f64;                
-                let vec_len = (delta_x.powf(2.0) + delta_y.powf(2.0) + delta_z.powf(2.0)).sqrt();                
+            for ray_x in 0..500 { // WINDOW_WIDTH
+                let delta_x: f64 = -3.0 + 6.0 / 500.0 * ray_x as f64;
+                let vector_len_coef = 5.0;           
+                let vec_len = (delta_x.powf(2.0) + delta_y.powf(2.0) + delta_z.powf(2.0)).sqrt() * vector_len_coef;                
 
                 
                 projectile_row.push(Projectile::new(
