@@ -19,6 +19,7 @@ const WINDOW_HEIGHT: usize = 500*2 + 50;
 pub const TEXT_COLOR: Color = [1.0, 1.0, 1.0, 1.0];
 
 use crate::drawing::draw_rectange;
+use std::time::SystemTime;
 
 
 pub struct Pos {
@@ -30,7 +31,7 @@ fn main() {
     // Prepare fonts   
     // Prepare window settings
     let mut window_settings = piston_window::WindowSettings::new(
-        "Raycaster",
+        "3D Raytracer",
         [
             to_gui_coord_u32(WINDOW_WIDTH),
             to_gui_coord_u32(WINDOW_HEIGHT),
@@ -52,9 +53,10 @@ fn main() {
 
     // Create a world
     let mut game = Game::new();
-
+    let mut start_time = SystemTime::now();
     // Event loop
-    while let Some(event) = window.next() {       
+    while let Some(event) = window.next() {
+        
         // Catch the events of the keyboard
         if let Some(piston_window::Button::Keyboard(key)) = event.press_args() {
             game.key_pressed(key);
@@ -80,9 +82,12 @@ fn main() {
                     
             // draw text            
             let transform = c.transform.trans(10.0, WINDOW_HEIGHT as f64 - 12.0);
+            let since_the_epoch_in_ms = SystemTime::now() 
+                .duration_since(start_time)
+                .expect("Time went backwards").as_millis();
 
             text::Text::new_color([1.0, 1.0, 1.0, 1.0], 30).draw(
-                format!("X {:#?} Y {:#?} Z {:#?}", game.player.x, game.player.y, game.player.z).as_str(),
+                format!("FrameTime: {:.2?} ms, FPS: {:.2?}, X {:#.2?}, Y {:#.2?}, Z {:#.2?}", since_the_epoch_in_ms, 1000.0/since_the_epoch_in_ms as f64, game.player.x, game.player.y, game.player.z).as_str(),
             &mut glyphs,
             &c.draw_state,
             transform, g
@@ -90,8 +95,7 @@ fn main() {
 
             // Update glyphs before rendering.
             glyphs.factory.encoder.flush(device);
-
+            start_time = SystemTime::now();
             });
-    }   
-
+    }
 }

@@ -3,7 +3,6 @@ use crate::player;
 use crate::enemy;
 
 use piston_window::types::Color;
-use crate::projectile::Projectile;
 use rayon::prelude::*;
 
 
@@ -113,140 +112,200 @@ impl Game {
             for (index_column, projectile) in projectile_row.iter_mut().enumerate() {
                 
                 let mut last_ball_bounce = 255;
-                //let mut angle = 100.0;
                 
-                for _x in 1..50000 { // not using loop for debug
+                for _x in 1..50000 { // not using loop for debug in order to handle infinity
                     let is_x_alternate = (projectile.x as i32/25) % 2 == 0;
                     let is_y_alternate = (projectile.y as i32/25) % 2 == 0;
                     let is_z_alternate = (projectile.z as i32/25) % 2 == 0;
 
                     if projectile.x <= 0.0 { // right
                         if is_y_alternate {
-                            canvas_line[index_column] = [projectile.time_to_live as f32, 0.0, 0.0, 1.0]; // red    
+                            canvas_line[index_column] = [
+                                projectile.time_to_live as f32, 
+                                0.0, 
+                                0.0, 
+                                1.0]; // red    
                         } else if is_z_alternate {
-                            canvas_line[index_column] = [projectile.time_to_live as f32, 0.2, 0.2, 1.0]; // light red
+                            canvas_line[index_column] = [
+                                projectile.time_to_live as f32, 
+                                0.2 * projectile.time_to_live as f32, 
+                                0.2 * projectile.time_to_live as f32, 
+                                1.0]; // light red
                         } else {
-                            canvas_line[index_column] = [projectile.time_to_live as f32, 0.4, 0.4, 1.0]; // lighter red
+                            canvas_line[index_column] = [
+                                projectile.time_to_live as f32, 
+                                0.4 * projectile.time_to_live as f32, 
+                                0.4 * projectile.time_to_live as f32, 
+                                1.0]; // lighter red
                         }
                         
                         break;   
                     }
                     if projectile.x >= ROOM_SIZE_X { // left                        
                         if is_y_alternate {
-                            canvas_line[index_column] = [0.0, projectile.time_to_live as f32, 0.0, 1.0]; // green
+                            canvas_line[index_column] = [
+                                0.0, 
+                                projectile.time_to_live as f32, 
+                                0.0, 
+                                1.0]; // green
                         } else if is_z_alternate {
-                            canvas_line[index_column] = [0.2, projectile.time_to_live as f32, 0.2, 1.0]; // light green
+                            canvas_line[index_column] = [
+                                0.2 * projectile.time_to_live as f32, 
+                                projectile.time_to_live as f32, 
+                                0.2 * projectile.time_to_live as f32, 
+                                1.0]; // light green
                         } else {
-                            canvas_line[index_column] = [0.4, projectile.time_to_live as f32, 0.4, 1.0]; // light green
+                            canvas_line[index_column] = [
+                                0.4 * projectile.time_to_live as f32, 
+                                projectile.time_to_live as f32, 
+                                0.4 * projectile.time_to_live as f32, 
+                                1.0]; // light green
                         }
                         break;                         
                     }
-
                     if projectile.z <= 0.0 { // top                        
                         if is_x_alternate {
-                            canvas_line[index_column] = [0.0, projectile.time_to_live as f32, projectile.time_to_live as f32, 1.0];  // cyan  
+                            canvas_line[index_column] = [
+                                0.0, 
+                                projectile.time_to_live as f32,
+                                projectile.time_to_live as f32,
+                                1.0];  // cyan  
                         } else if is_y_alternate {
-                            canvas_line[index_column] = [0.2, projectile.time_to_live as f32, projectile.time_to_live as f32, 1.0];  // light cyan  
+                            canvas_line[index_column] = [
+                                0.2 * projectile.time_to_live as f32, 
+                                projectile.time_to_live as f32, 
+                                projectile.time_to_live as f32, 
+                                1.0];  // light cyan  
                         } else {
-                            canvas_line[index_column] = [0.4, projectile.time_to_live as f32, projectile.time_to_live as f32, 1.0];  // lighter cyan  
+                            canvas_line[index_column] = [
+                                0.4 * projectile.time_to_live as f32, 
+                                projectile.time_to_live as f32, 
+                                projectile.time_to_live as f32, 
+                                1.0];  // lighter cyan  
                         }                                              
                         break;                        
                     }
                     if projectile.z >= ROOM_SIZE_Z { // bottom
                         if is_x_alternate {
-                            canvas_line[index_column] = [projectile.time_to_live as f32, projectile.time_to_live as f32, 0.0, 1.0];  // yellow
+                            canvas_line[index_column] = [
+                                projectile.time_to_live as f32, 
+                                projectile.time_to_live as f32, 
+                                0.0, 
+                                1.0];  // yellow
                         } else if is_y_alternate {
-                            canvas_line[index_column] = [projectile.time_to_live as f32, projectile.time_to_live as f32, 0.4, 1.0];  // light yellow
+                            canvas_line[index_column] = [
+                                projectile.time_to_live as f32, 
+                                projectile.time_to_live as f32, 
+                                0.4 * projectile.time_to_live as f32, 
+                                1.0];  // light yellow
                         } else {
-                            canvas_line[index_column] = [projectile.time_to_live as f32, projectile.time_to_live as f32, 0.8, 1.0];  // lighter yellow
+                            canvas_line[index_column] = [
+                                projectile.time_to_live as f32, 
+                                projectile.time_to_live as f32, 
+                                0.8 * projectile.time_to_live as f32, 
+                                1.0];  // lighter yellow
                         }                        
                         break;                            
                     }
                     if projectile.y <= 0.0 { // front                       
                         if is_x_alternate {
-                            canvas_line[index_column] = [projectile.time_to_live as f32, 0.0, projectile.time_to_live as f32, 1.0];  // pink
+                            canvas_line[index_column] = [
+                                projectile.time_to_live as f32, 
+                                0.0, projectile.time_to_live as f32, 
+                                1.0];  // pink
                         } else if is_z_alternate {
-                            canvas_line[index_column] = [projectile.time_to_live as f32, 0.2, projectile.time_to_live as f32, 1.0];  // light pink
+                            canvas_line[index_column] = [
+                                projectile.time_to_live as f32, 
+                                0.2 * projectile.time_to_live as f32, 
+                                projectile.time_to_live as f32, 
+                                1.0];  // light pink
                         } else {
-                            canvas_line[index_column] = [projectile.time_to_live as f32, 0.4, projectile.time_to_live as f32, 1.0];  // lighter pink
+                            canvas_line[index_column] = [
+                                projectile.time_to_live as f32, 
+                                0.4 * projectile.time_to_live as f32, 
+                                projectile.time_to_live as f32, 
+                                1.0];  // lighter pink
                         }                
                         break;                            
                     }
                     if projectile.y >= ROOM_SIZE_Y { // back
                         if is_x_alternate {
-                            canvas_line[index_column] = [0.0, 0.0, projectile.time_to_live as f32, 1.0]; // blue
+                            canvas_line[index_column] = [
+                                0.0, 
+                                0.0, 
+                                projectile.time_to_live as f32, 
+                                1.0]; // blue
                         } else if is_z_alternate {
-                            canvas_line[index_column] = [0.2, 0.2, projectile.time_to_live as f32, 1.0]; // light blue    
+                            canvas_line[index_column] = [
+                                0.2 * projectile.time_to_live as f32,
+                                0.2 * projectile.time_to_live as f32,
+                                projectile.time_to_live as f32, 
+                                1.0]; // light blue
                         } else {
-                            canvas_line[index_column] = [0.4, 0.4, projectile.time_to_live as f32, 1.0]; // lighter blue    
+                            canvas_line[index_column] = [
+                                0.4 * projectile.time_to_live as f32,
+                                0.4 * projectile.time_to_live as f32, 
+                                projectile.time_to_live as f32, 
+                                1.0]; // lighter blue    
                         }      
                         break;                            
-                    }              
-                    
-                    /*if is_enemy_found {
-                        continue;
-                    }*/
+                    }
 
                     for (ball_index, enemy) in self.enemies.iter().enumerate() {
-                        if last_ball_bounce == ball_index {
+                        if last_ball_bounce == ball_index { 
+                            // skip last reflected ball
                             continue;
                         }
                         let object_size = enemy.size;
                         let object_size_plus_error = object_size + 0.5;
 
-                        // Manhattan distance filter
-                        let dx = enemy.x - projectile.x;
-                        let dy = enemy.y - projectile.y;
-                        let dz = enemy.z - projectile.z;
+                        // Manhattan distance filter (+10 % FPS)
+                        let enemy_to_projectile_dx = enemy.x - projectile.x;
+                        let enemy_to_projectile_dy = enemy.y - projectile.y;
+                        let enemy_to_projectile_dz = enemy.z - projectile.z;
 
-                        if dx.abs() > object_size_plus_error || dy.abs() > object_size_plus_error || dz.abs() > object_size_plus_error {
+                        if enemy_to_projectile_dx.abs() > object_size_plus_error || enemy_to_projectile_dy.abs() > object_size_plus_error || enemy_to_projectile_dz.abs() > object_size_plus_error {
                             continue;
                         }
 
                         // Compute expensive distance
-                        let len_from_core = ((dx).powf(2.0) + (dy).powf(2.0) + (dz).powf(2.0)).sqrt();
+                        let len_projectile_to_core = ((enemy_to_projectile_dx).powf(2.0) + (enemy_to_projectile_dy).powf(2.0) + (enemy_to_projectile_dz).powf(2.0)).sqrt();
                         
 
-                        if len_from_core + 0.5 >= object_size && len_from_core - 0.5 <= object_size {
+                        if len_projectile_to_core + 0.5 >= object_size && len_projectile_to_core - 0.5 <= object_size {
 
                             last_ball_bounce = ball_index;
-
-                            let ball_vec_x = enemy.x - projectile.x;
-                            let ball_vec_y = enemy.y - projectile.y;
-                            let ball_vec_z = enemy.z - projectile.z;
-
-                            let ball_vec_len = (ball_vec_x.powf(2.0) + ball_vec_y.powf(2.0) + ball_vec_z.powf(2.0)).sqrt();
-                            
-                            let ball_vec_norm_x = ball_vec_x / ball_vec_len;
-                            let ball_vec_norm_y = ball_vec_y / ball_vec_len;
-                            let ball_vec_norm_z = ball_vec_z / ball_vec_len;
+                        
+                            let enemy_to_projectile_norm_x = enemy_to_projectile_dx / len_projectile_to_core;
+                            let enemy_to_projectile_norm_y = enemy_to_projectile_dy / len_projectile_to_core;
+                            let enemy_to_projectile_norm_z = enemy_to_projectile_dz / len_projectile_to_core;
     
-                            // R=V−2N(V⋅N)                                        
+                            // R=V−2N(V⋅N)
                             // R=RAY-2*NORMAL(RAY*NORMAL)
                             //                    ^-- dot product
 
-                            let dot_x = projectile.dx + ball_vec_norm_x;
-                            let dot_y = projectile.dy + ball_vec_norm_y;
-                            let dot_z = projectile.dz + ball_vec_norm_z;
+                            let dot_x = projectile.dx + enemy_to_projectile_norm_x;
+                            let dot_y = projectile.dy + enemy_to_projectile_norm_y;
+                            let dot_z = projectile.dz + enemy_to_projectile_norm_z;
                             let dot_projectile_ball_norm = (dot_x.powf(2.0) + dot_y.powf(2.0) + dot_z.powf(2.0)).sqrt();
-                            let norm_dx = projectile.dx - 2.0*ball_vec_norm_x*(dot_projectile_ball_norm);
-                            let norm_dy = projectile.dy - 2.0*ball_vec_norm_y*(dot_projectile_ball_norm);
-                            let norm_dz = projectile.dz - 2.0*ball_vec_norm_z*(dot_projectile_ball_norm);
-                            let len_new_d = (norm_dx.powf(2.0) + norm_dy.powf(2.0) + norm_dz.powf(2.0)).sqrt();
-                            projectile.dx = norm_dx / len_new_d;
-                            projectile.dy = norm_dy / len_new_d;
-                            projectile.dz = norm_dz / len_new_d;
+                            
+                            let reflection_dx = projectile.dx - 2.0*enemy_to_projectile_norm_x*(dot_projectile_ball_norm);
+                            let reflection_dy = projectile.dy - 2.0*enemy_to_projectile_norm_y*(dot_projectile_ball_norm);
+                            let reflection_dz = projectile.dz - 2.0*enemy_to_projectile_norm_z*(dot_projectile_ball_norm);
+                            let len_reflection_delta = (reflection_dx.powf(2.0) + reflection_dy.powf(2.0) + reflection_dz.powf(2.0)).sqrt();
+                            
+                            projectile.dx = reflection_dx / len_reflection_delta;
+                            projectile.dy = reflection_dy / len_reflection_delta;
+                            projectile.dz = reflection_dz / len_reflection_delta;
+
+                            if projectile.time_to_live > 0.4 {
+                                projectile.time_to_live -= 0.07; // add fake shadow effect for each reflection jump
+                            }
                         }
                     }                   
                     projectile.x = projectile.x + projectile.dx;
                     projectile.y = projectile.y + projectile.dy;
                     projectile.z = projectile.z + projectile.dz;
-                    
-                    
-
-                    /*if projectile.time_to_live > 0.5 {
-                        projectile.time_to_live -= 0.0008; // add fake shadow effect
-                    }*/
                 }
             }
             canvas_line
