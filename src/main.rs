@@ -96,6 +96,6 @@ fn main() {
             // Update glyphs before rendering.
             glyphs.factory.encoder.flush(device);
             start_time = SystemTime::now();
-            });
+        });
     }
 }
