@@ -1,13 +1,15 @@
 use crate::player;
 
 use crate::enemy;
+use crate::projectile::Projectile;
 
 use piston_window::types::Color;
 use rayon::prelude::*;
 
 enum LightTracing {
     FindingWall,
-    SearchingForLightSource,
+    WallFoundSearchingForLightSource,
+    IntermediateSearchingForLightSource,
 }
 
 
@@ -36,7 +38,7 @@ impl Game {
         //enemies.push(enemy::Enemy::new(200.0, 200.0, 320.0, 70.0, 1000, enemy::EnemyType::Sphere, 0.0, 5.0, 0.0));
         enemies.push(enemy::Enemy::new(255.0, 100.0, 170.0, 30.0, 1000, enemy::EnemyType::Sphere, 5.0, 0.0, 0.0));        
         enemies.push(enemy::Enemy::new(150.0, 55.0, 210.0, 30.0, 1000, enemy::EnemyType::Sphere, 5.0, 0.0, 0.0));
-        enemies.push(enemy::Enemy::new(35.0, 35.0, 250.0, 30.0, 1000, enemy::EnemyType::Sphere, 5.0, 0.0, 0.0));
+        enemies.push(enemy::Enemy::new(105.0, 35.0, 250.0, 30.0, 1000, enemy::EnemyType::Sphere, 5.0, 0.0, 0.0));
         
         //enemies.push(enemy::Enemy::new(110.0, 340.0, 110.0, 100.0, 1000, enemy::EnemyType::Sphere, 5.0, 5.0, 0.0));
 
@@ -126,11 +128,13 @@ impl Game {
                     0.0, 
                     0.0, 
                     0.0, 
-                    1.0];     
+                    1.0];
+                let mut intermediate_projectile = Projectile::new(0.0,0.0,0.0,0.0,0.0,0.0,1.0);  // X Y Z
                 
-                'ray_travel: for _x in 1..50000 { // not using loop for debug in order to handle infinity
+                'ray_travel: for _x in 1..50000 { // not using loop for debug in order to handle infinity errors
                     
-                    match light_tracer { LightTracing::FindingWall => {
+                    match light_tracer { 
+                        LightTracing::FindingWall => {
                         let is_x_alternate = (projectile.x as i32/25) % 2 == 0;
                         let is_y_alternate = (projectile.y as i32/25) % 2 == 0;
                         let is_z_alternate = (projectile.z as i32/25) % 2 == 0;
@@ -139,21 +143,21 @@ impl Game {
                         if projectile.x <= 0.0 { // left
                             if is_y_alternate {
                                 raw_wall_color = [
-                                    projectile.time_to_live as f32, 
-                                    0.0, 
-                                    0.0, 
+                                    raw_wall_color[0] + projectile.time_to_live as f32, 
+                                    raw_wall_color[1] + 0.0, 
+                                    raw_wall_color[2] + 0.0, 
                                     1.0]; // red    
                             } else if is_z_alternate {
                                 raw_wall_color = [
-                                    projectile.time_to_live as f32, 
-                                    0.15 * projectile.time_to_live as f32, 
-                                    0.15 * projectile.time_to_live as f32, 
+                                    raw_wall_color[0] + projectile.time_to_live as f32, 
+                                    raw_wall_color[1] + 0.15 * projectile.time_to_live as f32, 
+                                    raw_wall_color[2] + 0.15 * projectile.time_to_live as f32, 
                                     1.0]; // light red
                             } else {
                                 raw_wall_color = [
-                                    projectile.time_to_live as f32, 
-                                    0.25 * projectile.time_to_live as f32, 
-                                    0.25 * projectile.time_to_live as f32, 
+                                    raw_wall_color[0] + projectile.time_to_live as f32, 
+                                    raw_wall_color[1] + 0.25 * projectile.time_to_live as f32, 
+                                    raw_wall_color[2] + 0.25 * projectile.time_to_live as f32, 
                                     1.0]; // lighter red
                             }
                             is_wall_found = true;
@@ -161,43 +165,47 @@ impl Game {
                         if projectile.x >= ROOM_SIZE_X { // right                        
                             if is_y_alternate {
                                 raw_wall_color = [
-                                    0.0, 
-                                    projectile.time_to_live as f32, 
-                                    0.0, 
+                                    raw_wall_color[0] + 0.0, 
+                                    raw_wall_color[1] + projectile.time_to_live as f32, 
+                                    raw_wall_color[2] + 0.0, 
                                     1.0]; // green
                             } else if is_z_alternate {
                                 raw_wall_color = [
-                                    0.2 * projectile.time_to_live as f32, 
-                                    projectile.time_to_live as f32, 
-                                    0.2 * projectile.time_to_live as f32, 
+                                    raw_wall_color[0] + 0.2 * projectile.time_to_live as f32, 
+                                    raw_wall_color[1] + projectile.time_to_live as f32, 
+                                    raw_wall_color[2] + 0.2 * projectile.time_to_live as f32, 
                                     1.0]; // light green
                             } else {
                                 raw_wall_color = [
-                                    0.4 * projectile.time_to_live as f32, 
-                                    projectile.time_to_live as f32, 
-                                    0.4 * projectile.time_to_live as f32, 
+                                    raw_wall_color[0] + 0.4 * projectile.time_to_live as f32, 
+                                    raw_wall_color[1] + projectile.time_to_live as f32, 
+                                    raw_wall_color[2] + 0.4 * projectile.time_to_live as f32, 
                                     1.0]; // light green
                             }
                             is_wall_found = true;
                         }
+                        /*if raw_wall_color[0] < 0.0 {
+                            print!("rawwallcolor<0.0")
+                        }*/
                         if projectile.z <= 0.0 { // front                        
                             if is_x_alternate {
+                                
                                 raw_wall_color = [
-                                    0.0, 
-                                    projectile.time_to_live as f32,
-                                    projectile.time_to_live as f32,
+                                    raw_wall_color[0] + 0.0, 
+                                    raw_wall_color[1] + projectile.time_to_live as f32,
+                                    raw_wall_color[2] + projectile.time_to_live as f32,
                                     1.0];  // cyan  
                             } else if is_y_alternate {
                                 raw_wall_color = [
-                                    0.2 * projectile.time_to_live as f32, 
-                                    projectile.time_to_live as f32, 
-                                    projectile.time_to_live as f32, 
+                                    raw_wall_color[0] + 0.2 * projectile.time_to_live as f32, 
+                                    raw_wall_color[1] + projectile.time_to_live as f32, 
+                                    raw_wall_color[2] + projectile.time_to_live as f32, 
                                     1.0];  // light cyan  
                             } else {
                                 raw_wall_color = [
-                                    0.4 * projectile.time_to_live as f32, 
-                                    projectile.time_to_live as f32, 
-                                    projectile.time_to_live as f32, 
+                                    raw_wall_color[0] + 0.4 * projectile.time_to_live as f32, 
+                                    raw_wall_color[1] + projectile.time_to_live as f32, 
+                                    raw_wall_color[2] + projectile.time_to_live as f32, 
                                     1.0];  // lighter cyan  
                             }
                             is_wall_found = true;
@@ -205,21 +213,21 @@ impl Game {
                         if projectile.z >= ROOM_SIZE_Z { // back
                             if is_x_alternate {
                                 raw_wall_color = [
-                                    projectile.time_to_live as f32, 
-                                    projectile.time_to_live as f32, 
-                                    0.0, 
+                                    raw_wall_color[0] + projectile.time_to_live as f32, 
+                                    raw_wall_color[1] + projectile.time_to_live as f32, 
+                                    raw_wall_color[2] + 0.0, 
                                     1.0];  // yellow
                             } else if is_y_alternate {
                                 raw_wall_color = [
-                                    projectile.time_to_live as f32, 
-                                    projectile.time_to_live as f32, 
-                                    0.2 * projectile.time_to_live as f32, 
+                                    raw_wall_color[0] + projectile.time_to_live as f32, 
+                                    raw_wall_color[1] + projectile.time_to_live as f32, 
+                                    raw_wall_color[2] + 0.2 * projectile.time_to_live as f32, 
                                     1.0];  // light yellow
                             } else {
                                 raw_wall_color = [
-                                    projectile.time_to_live as f32, 
-                                    projectile.time_to_live as f32, 
-                                    0.4 * projectile.time_to_live as f32, 
+                                    raw_wall_color[0] + projectile.time_to_live as f32, 
+                                    raw_wall_color[1] + projectile.time_to_live as f32, 
+                                    raw_wall_color[2] + 0.4 * projectile.time_to_live as f32, 
                                     1.0];  // lighter yellow
                             }
                             is_wall_found = true;
@@ -230,20 +238,21 @@ impl Game {
                                 raw_wall_color = [1.0,1.0,1.0,1.0]; // LIGHT
                             }  else if is_x_alternate {
                                 raw_wall_color = [
-                                    projectile.time_to_live as f32, 
-                                    0.0, projectile.time_to_live as f32, 
+                                    raw_wall_color[0] + projectile.time_to_live as f32, 
+                                    raw_wall_color[1] + 0.0, 
+                                    raw_wall_color[2] + projectile.time_to_live as f32, 
                                     1.0];  // pink
                             } else if is_z_alternate {
                                 raw_wall_color = [
-                                    projectile.time_to_live as f32, 
-                                    0.15 * projectile.time_to_live as f32, 
-                                    projectile.time_to_live as f32, 
+                                    raw_wall_color[0] + projectile.time_to_live as f32, 
+                                    raw_wall_color[1] + 0.15 * projectile.time_to_live as f32, 
+                                    raw_wall_color[2] + projectile.time_to_live as f32, 
                                     1.0];  // light pink
                             } else {
                                 raw_wall_color = [
-                                    projectile.time_to_live as f32, 
-                                    0.25 * projectile.time_to_live as f32, 
-                                    projectile.time_to_live as f32, 
+                                    raw_wall_color[0] + projectile.time_to_live as f32, 
+                                    raw_wall_color[1] + 0.25 * projectile.time_to_live as f32, 
+                                    raw_wall_color[2] + projectile.time_to_live as f32, 
                                     1.0];  // lighter pink
                             }
                             is_wall_found = true;
@@ -251,21 +260,21 @@ impl Game {
                         if projectile.y >= ROOM_SIZE_Y { // back
                             if is_x_alternate {
                                 raw_wall_color = [
-                                    0.0, 
-                                    0.0, 
-                                    projectile.time_to_live as f32, 
+                                    raw_wall_color[0] + 0.0, 
+                                    raw_wall_color[1] + 0.0, 
+                                    raw_wall_color[2] + projectile.time_to_live as f32, 
                                     1.0]; // blue
                             } else if is_z_alternate {
                                 raw_wall_color = [
-                                    0.15 * projectile.time_to_live as f32,
-                                    0.15 * projectile.time_to_live as f32,
-                                    projectile.time_to_live as f32, 
+                                    raw_wall_color[0] + 0.15 * projectile.time_to_live as f32,
+                                    raw_wall_color[1] + 0.15 * projectile.time_to_live as f32,
+                                    raw_wall_color[2] + projectile.time_to_live as f32, 
                                     1.0]; // light blue
                             } else {
                                 raw_wall_color = [
-                                    0.25 * projectile.time_to_live as f32,
-                                    0.25 * projectile.time_to_live as f32, 
-                                    projectile.time_to_live as f32, 
+                                    raw_wall_color[0] + 0.25 * projectile.time_to_live as f32,
+                                    raw_wall_color[1] + 0.25 * projectile.time_to_live as f32, 
+                                    raw_wall_color[2] + projectile.time_to_live as f32, 
                                     1.0]; // lighter blue    
                             }
                             is_wall_found = true;
@@ -279,19 +288,44 @@ impl Game {
                             projectile.dx = light_to_projectile_dx / len_light_to_projectile;
                             projectile.dy = light_to_projectile_dy / len_light_to_projectile;
                             projectile.dz = light_to_projectile_dz / len_light_to_projectile;
-                            light_tracer = LightTracing::SearchingForLightSource;
+                            light_tracer = LightTracing::WallFoundSearchingForLightSource;
                         }
                     }
-                        LightTracing::SearchingForLightSource => {
+                        LightTracing::WallFoundSearchingForLightSource => {
                             let enemy_to_projectile_dx = ROOM_SIZE_X / 2.0 - projectile.x;
                             let enemy_to_projectile_dy = 0.0 - projectile.y;
                             let enemy_to_projectile_dz = ROOM_SIZE_Z / 2.0 - projectile.z;
 
                             if enemy_to_projectile_dx.abs() < 10.5 && enemy_to_projectile_dy.abs() < 10.5 && enemy_to_projectile_dz.abs() < 10.5 {
                                 canvas_line[index_column] = raw_wall_color;
-                                    break 'ray_travel // is light
+                                break 'ray_travel // is light
                             }
                         }
+                        LightTracing::IntermediateSearchingForLightSource => {
+                            let enemy_to_projectile_dx = ROOM_SIZE_X / 2.0 - projectile.x;
+                            let enemy_to_projectile_dy = 0.0 - projectile.y;
+                            let enemy_to_projectile_dz = ROOM_SIZE_Z / 2.0 - projectile.z;
+
+                            if enemy_to_projectile_dx.abs() < 10.5 && enemy_to_projectile_dy.abs() < 10.5 && enemy_to_projectile_dz.abs() < 10.5 {
+                                // we found a light source
+
+                                //raw_wall_color[0] -= 0.2; // raw_wall_color[0] / 1.1;
+                                //raw_wall_color[1] -= 0.2; // raw_wall_color[1] / 1.1;
+                                //raw_wall_color[2] -= 0.2; // raw_wall_color[2] / 1.1;
+                                //canvas_line[index_column] = raw_wall_color;
+
+                                // reset the projectile back to the object
+                                projectile.x = intermediate_projectile.x;
+                                projectile.y = intermediate_projectile.y;
+                                projectile.z = intermediate_projectile.z;
+                                projectile.dx = intermediate_projectile.dx;
+                                projectile.dy = intermediate_projectile.dy;
+                                projectile.dz = intermediate_projectile.dz;
+
+                                light_tracer = LightTracing::FindingWall;
+                                    //break 'ray_travel // is light not not the end
+                            }
+                        },
                     }
 
                     for (ball_index, enemy) in self.enemies.iter().enumerate() {
@@ -316,17 +350,13 @@ impl Game {
                         
 
                         if len_projectile_to_core + 0.5 >= object_size && len_projectile_to_core - 0.5 <= object_size {
+                            // collision with an object when searching for a wall
+                            last_ball_bounce = ball_index;
 
                             match light_tracer {
-                                LightTracing::SearchingForLightSource => {
-                                    raw_wall_color[0] = raw_wall_color[0] / 2.0;
-                                    raw_wall_color[1] = raw_wall_color[1] / 2.0;
-                                    raw_wall_color[2] = raw_wall_color[2] / 2.0;
-                                    canvas_line[index_column] = raw_wall_color;
-                                    break 'ray_travel // is shadow
-                                }
                                 LightTracing::FindingWall => {
-                                    last_ball_bounce = ball_index;
+                                    
+                                    
                         
                                     let enemy_to_projectile_norm_x = enemy_to_projectile_dx / len_projectile_to_core;
                                     let enemy_to_projectile_norm_y = enemy_to_projectile_dy / len_projectile_to_core;
@@ -348,7 +378,65 @@ impl Game {
                                     
                                     projectile.dx = reflection_dx / len_reflection_delta;
                                     projectile.dy = reflection_dy / len_reflection_delta;
-                                    projectile.dz = reflection_dz / len_reflection_delta;        
+                                    projectile.dz = reflection_dz / len_reflection_delta;
+
+                                    // check for light
+
+                                    /*raw_wall_color[0] -= 0.2; // raw_wall_color[0] / 1.1;
+                                    raw_wall_color[1] -= 0.2; // raw_wall_color[1] / 1.1;
+                                    raw_wall_color[2] -= 0.2; // raw_wall_color[2] / 1.1;
+                                    canvas_line[index_column] = raw_wall_color;*/
+
+                                    // save last projectile state
+                                    intermediate_projectile.x = projectile.x;
+                                    intermediate_projectile.y = projectile.y;
+                                    intermediate_projectile.z = projectile.z;
+                                    intermediate_projectile.dx = projectile.dx;
+                                    intermediate_projectile.dy = projectile.dy;
+                                    intermediate_projectile.dz = projectile.dz;
+
+                                    // start moving towards light
+                                    let light_to_projectile_dx = ROOM_SIZE_X / 2.0 - projectile.x;
+                                    let light_to_projectile_dy = 0.0 - projectile.y;
+                                    let light_to_projectile_dz = ROOM_SIZE_Z / 2.0 - projectile.z;
+                                    let len_light_to_projectile = (light_to_projectile_dx.powf(2.0) + light_to_projectile_dy.powf(2.0) + light_to_projectile_dz.powf(2.0)).sqrt();
+        
+                                    projectile.dx = light_to_projectile_dx / len_light_to_projectile;
+                                    projectile.dy = light_to_projectile_dy / len_light_to_projectile;
+                                    projectile.dz = light_to_projectile_dz / len_light_to_projectile;
+
+                                    light_tracer = LightTracing::IntermediateSearchingForLightSource;
+                                },
+                            
+                                LightTracing::WallFoundSearchingForLightSource => {
+                                    raw_wall_color[0] -= 0.2; // raw_wall_color[0] / 1.1;
+                                    raw_wall_color[1] -= 0.2; // raw_wall_color[1] / 1.1;
+                                    raw_wall_color[2] -= 0.2; // raw_wall_color[2] / 1.1;
+                                    canvas_line[index_column] = raw_wall_color;
+                                    
+                                    break 'ray_travel // is shadow
+                                }
+                                LightTracing::IntermediateSearchingForLightSource => {                                    
+
+                                    // we hit an object during search for a light source = shadow
+                                    raw_wall_color[0] -= 0.4; // raw_wall_color[0] / 1.1;
+                                    raw_wall_color[1] -= 0.4; // raw_wall_color[1] / 1.1;
+                                    raw_wall_color[2] -= 0.4; // raw_wall_color[2] / 1.1;                                    
+
+                                    // reset the projectile to the last know state (towards wall)
+                                    projectile.x = intermediate_projectile.x;
+                                    projectile.y = intermediate_projectile.y;
+                                    projectile.z = intermediate_projectile.z;
+                                    projectile.dx = intermediate_projectile.dx;
+                                    projectile.dy = intermediate_projectile.dy;
+                                    projectile.dz = intermediate_projectile.dz;
+
+                                    // going back to search for a wall
+                                    light_tracer = LightTracing::FindingWall;
+
+                                    
+                                    //canvas_line[index_column] = raw_wall_color;
+                                    //break 'ray_travel // is shadow
                                 },
                             }                            
                         }
