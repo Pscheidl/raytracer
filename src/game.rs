@@ -35,22 +35,17 @@ impl Game {
         /* Y - | +down
            X - -  +right
            Z - / +far*/
-        //enemies.push(enemy::Enemy::new(250.0, 200.0, 300.0, 100.0, 1000, enemy::EnemyType::Sphere, -5.0));
-       
-        //enemies.push(enemy::Enemy::new(320.0, 350.0, 200.0, 70.0, 1000, enemy::EnemyType::Sphere, -5.0, 0.0, 0.0));
-        //enemies.push(enemy::Enemy::new(200.0, 200.0, 320.0, 70.0, 1000, enemy::EnemyType::Sphere, 0.0, 5.0, 0.0));
-        enemies.push(enemy::Enemy::new(250.0, 45.0, 170.0, 30.0, 1000, enemy::EnemyType::Sphere, -5.0, 0.0, 0.0));
-        enemies.push(enemy::Enemy::new(255.0, 100.0, 170.0, 30.0, 1000, enemy::EnemyType::Sphere, 5.0, 0.0, 0.0));        
-        
+
+        enemies.push(enemy::Enemy::new(255.0, 100.0, 220.0, 30.0, 1000, enemy::EnemyType::Sphere, 5.0, 0.0, 0.0));
+        enemies.push(enemy::Enemy::new(250.0, 45.0, 220.0, 30.0, 1000, enemy::EnemyType::Sphere, -5.0, 0.0, 0.0));
+        enemies.push(enemy::Enemy::new(250.0, 45.0, 50.0, 30.0, 1000, enemy::EnemyType::Sphere, -5.0, 0.0, 0.0));
         enemies.push(enemy::Enemy::new(55.0, 35.0, 250.0, 30.0, 1000, enemy::EnemyType::Sphere, 5.0, 0.0, 0.0));
-        
-        //enemies.push(enemy::Enemy::new(110.0, 340.0, 110.0, 100.0, 1000, enemy::EnemyType::Sphere, 5.0, 5.0, 0.0));
 
         Game {
             player: player::Player::new(
                 140 as f64,
                 60 as f64,
-                105.0,
+                155.0,
                 10.0,
                 10.0,
                 false,
@@ -118,12 +113,10 @@ impl Game {
             enemy.move_enemy(self.room.x, self.room.y, self.room.z);
         }
 
-
         let canvas_vec: Vec<Vec<Color>> = self.player.projectiles.par_iter_mut().map(|projectile_row| {
             let mut canvas_line: Vec<Color> = [[0.0, 0.0, 0.0, 0.0]; 500].to_vec();
             for (index_column, projectile) in projectile_row.iter_mut().enumerate() {
                 
-                let mut last_ball_hit_id = 255;
                 let mut light_tracer = LightTracing::FindingWall;         
                 let mut buffer_wall_color = [
                     0.0, 
@@ -156,7 +149,7 @@ impl Game {
                             let enemy_to_projectile_dy = 0.0 - projectile.y;
                             let enemy_to_projectile_dz = self.room.z / 2.0 - projectile.z;
 
-                            if enemy_to_projectile_dx.abs() < 1.5 && enemy_to_projectile_dy.abs() < 1.5 && enemy_to_projectile_dz.abs() < 1.5 {
+                            if enemy_to_projectile_dx.abs() < 0.8 && enemy_to_projectile_dy.abs() < 0.8 && enemy_to_projectile_dz.abs() < 0.8 {
                                 canvas_line[index_column] = buffer_wall_color;
                                 break 'ray_travel // is light
                             }
@@ -166,14 +159,9 @@ impl Game {
                             let enemy_to_projectile_dy = 0.0 - projectile.y;
                             let enemy_to_projectile_dz = self.room.z / 2.0 - projectile.z;
 
-                            if enemy_to_projectile_dx.abs() < 1.5 && enemy_to_projectile_dy.abs() < 1.5 && enemy_to_projectile_dz.abs() < 1.5 {
-                                // we found a light source
+                            if enemy_to_projectile_dx.abs() < 0.8 && enemy_to_projectile_dy.abs() < 0.8 && enemy_to_projectile_dz.abs() < 0.8 {
+                                // we found a light source - keep the brightness as it is
                                 
-                                //raw_wall_color[0] -= 0.5; // raw_wall_color[0] / 1.1;
-                                //raw_wall_color[1] -= 0.2; // raw_wall_color[1] / 1.1;
-                                //raw_wall_color[2] -= 0.2; // raw_wall_color[2] / 1.1;
-                                //canvas_line[index_column] = raw_wall_color;
-
                                 // reset the projectile back to the object
                                 projectile.x = intermediate_projectile.x;
                                 projectile.y = intermediate_projectile.y;
@@ -183,9 +171,7 @@ impl Game {
                                 projectile.dz = intermediate_projectile.dz;
 
                                 light_tracer = LightTracing::FindingWall;
-                                    //break 'ray_travel // is light not not the end
                             }
-
                             if let Some(wall) = self.room.get_wall_color_at_projectile(&projectile) {
                                 buffer_wall_color[0] += wall[0];
                                 buffer_wall_color[1] += wall[1];
@@ -204,10 +190,10 @@ impl Game {
                     }
 
                     for (ball_index, enemy) in self.enemies.iter().enumerate() {
-                        if (last_ball_hit_id == ball_index && light_tracer == LightTracing::FindingWall) { 
+                        /*if (last_ball_hit_id == ball_index && light_tracer == LightTracing::FindingWall) { 
                             // skip last reflected ball
                             continue;
-                        }
+                        }*/
                         let object_size = enemy.size;
                         let object_size_plus_error = object_size + 0.5;
 
@@ -226,10 +212,10 @@ impl Game {
 
                         if len_projectile_to_core + 0.5 >= object_size && len_projectile_to_core - 0.5 <= object_size {
                             // collision with an object when searching for a wall
-                            last_ball_hit_id = ball_index;
 
                             match light_tracer {
                                 LightTracing::FindingWall => {
+                                    // while searching for a wall we can hit other objects
                         
                                     let enemy_to_projectile_norm_x = enemy_to_projectile_dx / len_projectile_to_core;
                                     let enemy_to_projectile_norm_y = enemy_to_projectile_dy / len_projectile_to_core;
@@ -277,20 +263,19 @@ impl Game {
                                 LightTracing::WallFoundSearchingForLightSource => {
                                     // we hit an object when searching for a light source
 
-                                    buffer_wall_color[0] -= 0.2; // raw_wall_color[0] / 1.1;
-                                    buffer_wall_color[1] -= 0.2; // raw_wall_color[1] / 1.1;
-                                    buffer_wall_color[2] -= 0.2; // raw_wall_color[2] / 1.1;
+                                    buffer_wall_color[0] -= 0.2;
+                                    buffer_wall_color[1] -= 0.2;
+                                    buffer_wall_color[2] -= 0.2;
                                     canvas_line[index_column] = buffer_wall_color;
                                     
                                     break 'ray_travel // is shadow
                                 }
-                                LightTracing::IntermediateSearchingForLightSource => {                                    
+                                LightTracing::IntermediateSearchingForLightSource => {
 
                                     // we hit an object during search for a light source = shadow
-                                    buffer_wall_color[0] -= 0.2; // raw_wall_color[0] / 1.1;
-                                    buffer_wall_color[1] -= 0.2; // raw_wall_color[1] / 1.1;
-                                    buffer_wall_color[2] -= 0.2; // raw_wall_color[2] / 1.1;
-                                                                 
+                                    buffer_wall_color[0] -= 0.2;
+                                    buffer_wall_color[1] -= 0.2;
+                                    buffer_wall_color[2] -= 0.2;
 
                                     // reset the projectile to the last know state (towards wall)
                                     projectile.x = intermediate_projectile.x;
@@ -302,16 +287,10 @@ impl Game {
 
                                     // going back to search for a wall
                                     light_tracer = LightTracing::FindingWall;
-                                    //break;
-
-                                    
-                                    //canvas_line[index_column] = raw_wall_color;
-                                    //break 'ray_travel // is shadow
                                 },
-                            }          
+                            }
                         }
                     }
-
                     // at the end - move the projectile
                     projectile.x = projectile.x + projectile.dx;
                     projectile.y = projectile.y + projectile.dy;

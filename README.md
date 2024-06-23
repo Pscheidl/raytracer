@@ -2,7 +2,7 @@
 
 Raycast engine written in Rust.
 
-<img alt="Description" src="https://github.com/PavelVavruska/raytracer/blob/master/raytracer_peek_20240620.gif">
+<img alt="Description" src="https://github.com/PavelVavruska/raytracer/blob/master/raytracer_peek_20240623.gif">
 
 20.6.2024 - add shadows from central point light
 

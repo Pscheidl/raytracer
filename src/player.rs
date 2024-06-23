@@ -109,7 +109,7 @@ impl Player {
 
             for ray_x in 0..500 { // WINDOW_WIDTH
                 let delta_x: f64 = -3.0 + 6.0 / 500.0 * ray_x as f64;
-                let vector_len_coef = 5.0;           
+                let vector_len_coef = 5.0; // lower to increase FPS (1 is minimum, 5 for better quality)
                 let vec_len = (delta_x.powf(2.0) + delta_y.powf(2.0) + delta_z.powf(2.0)).sqrt() * vector_len_coef;                
 
                 
