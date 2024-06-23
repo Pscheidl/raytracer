@@ -1,3 +1,5 @@
+use crate::projectile::{self, Projectile};
+
 #[derive(Copy, Clone)]
 pub enum EnemyType {
     Point,

@@ -109,14 +109,18 @@ impl Game {
     /// Draws entire world.
     pub fn compute_one_tick(&mut self) -> Vec<Vec<Color>> {
 
+        // setup world
         for enemy in self.enemies.iter_mut() {
             enemy.move_enemy(self.room.x, self.room.y, self.room.z);
         }
-
+        
+        // iterate over all projectiles 
         let canvas_vec: Vec<Vec<Color>> = self.player.projectiles.par_iter_mut().map(|projectile_row| {
             let mut canvas_line: Vec<Color> = [[0.0, 0.0, 0.0, 0.0]; 500].to_vec();
             for (index_column, projectile) in projectile_row.iter_mut().enumerate() {
                 
+                // helper vars for each projectile
+
                 let mut light_tracer = LightTracing::FindingWall;         
                 let mut buffer_wall_color = [
                     0.0, 
@@ -129,40 +133,39 @@ impl Game {
 
                     match light_tracer {
                         LightTracing::FindingWall => {
-                            if let Some(wall) = self.room.get_wall_color_at_projectile(&projectile) {
-                                buffer_wall_color[0] += wall[0];
-                                buffer_wall_color[1] += wall[1];
-                                buffer_wall_color[2] += wall[2];
-                                let light_to_projectile_dx = self.room.x / 2.0 - projectile.x;
-                                let light_to_projectile_dy = 0.0 - projectile.y;
-                                let light_to_projectile_dz = self.room.z / 2.0 - projectile.z;
-                                let len_light_to_projectile = (light_to_projectile_dx.powf(2.0) + light_to_projectile_dy.powf(2.0) + light_to_projectile_dz.powf(2.0)).sqrt();
 
-                                projectile.dx = light_to_projectile_dx / len_light_to_projectile;
-                                projectile.dy = light_to_projectile_dy / len_light_to_projectile;
-                                projectile.dz = light_to_projectile_dz / len_light_to_projectile;
+                            // finding wall, if found start moving towards light source                            
+                            if let Some(wall_color) = self.room.get_wall_color_at_projectile(&projectile) {
+                                buffer_wall_color[0] += wall_color[0];
+                                buffer_wall_color[1] += wall_color[1];
+                                buffer_wall_color[2] += wall_color[2];
+                                let light_source_to_projectile_dx= self.room.x / 2.0 - projectile.x;
+                                let light_source_to_projectile_dy = 0.0 - projectile.y;
+                                let light_source_to_projectile_dz = self.room.z / 2.0 - projectile.z;
+                                let len_light_source_to_projectile = (light_source_to_projectile_dx.powf(2.0) + light_source_to_projectile_dy.powf(2.0) + light_source_to_projectile_dz.powf(2.0)).sqrt();
+
+                                projectile.dx = light_source_to_projectile_dx / len_light_source_to_projectile;
+                                projectile.dy = light_source_to_projectile_dy / len_light_source_to_projectile;
+                                projectile.dz = light_source_to_projectile_dz / len_light_source_to_projectile;
                                 light_tracer = LightTracing::WallFoundSearchingForLightSource;
                             }
                         }
                         LightTracing::WallFoundSearchingForLightSource => {
-                            let enemy_to_projectile_dx = self.room.x / 2.0 - projectile.x;
-                            let enemy_to_projectile_dy = 0.0 - projectile.y;
-                            let enemy_to_projectile_dz = self.room.z / 2.0 - projectile.z;
 
-                            if enemy_to_projectile_dx.abs() < 0.8 && enemy_to_projectile_dy.abs() < 0.8 && enemy_to_projectile_dz.abs() < 0.8 {
+                            // check if the projectile arrived at the light source, if yes write current color and exit current ray processing
+
+                            if self.room.is_projectile_near_light(&projectile) {
                                 canvas_line[index_column] = buffer_wall_color;
                                 break 'ray_travel // is light
                             }
                         }
                         LightTracing::IntermediateSearchingForLightSource => {
-                            let enemy_to_projectile_dx = self.room.x / 2.0 - projectile.x;
-                            let enemy_to_projectile_dy = 0.0 - projectile.y;
-                            let enemy_to_projectile_dz = self.room.z / 2.0 - projectile.z;
 
-                            if enemy_to_projectile_dx.abs() < 0.8 && enemy_to_projectile_dy.abs() < 0.8 && enemy_to_projectile_dz.abs() < 0.8 {
+                            // check if the projectile arrived at the light source, if yes continue moving ray towards wall (to get color)
+                            if self.room.is_projectile_near_light(&projectile) {
                                 // we found a light source - keep the brightness as it is
                                 
-                                // reset the projectile back to the object
+                                // reset the projectile back to the reflection point of the object
                                 projectile.x = intermediate_projectile.x;
                                 projectile.y = intermediate_projectile.y;
                                 projectile.z = intermediate_projectile.z;
@@ -171,29 +174,12 @@ impl Game {
                                 projectile.dz = intermediate_projectile.dz;
 
                                 light_tracer = LightTracing::FindingWall;
-                            }
-                            if let Some(wall) = self.room.get_wall_color_at_projectile(&projectile) {
-                                buffer_wall_color[0] += wall[0];
-                                buffer_wall_color[1] += wall[1];
-                                buffer_wall_color[2] += wall[2];
-                                let light_to_projectile_dx = self.room.x / 2.0 - projectile.x;
-                                let light_to_projectile_dy = 0.0 - projectile.y;
-                                let light_to_projectile_dz = self.room.z / 2.0 - projectile.z;
-                                let len_light_to_projectile = (light_to_projectile_dx.powf(2.0) + light_to_projectile_dy.powf(2.0) + light_to_projectile_dz.powf(2.0)).sqrt();
-    
-                                projectile.dx = light_to_projectile_dx / len_light_to_projectile;
-                                projectile.dy = light_to_projectile_dy / len_light_to_projectile;
-                                projectile.dz = light_to_projectile_dz / len_light_to_projectile;
-                                light_tracer = LightTracing::WallFoundSearchingForLightSource;
-                            }
+                            }                            
                         },
                     }
 
-                    for (ball_index, enemy) in self.enemies.iter().enumerate() {
-                        /*if (last_ball_hit_id == ball_index && light_tracer == LightTracing::FindingWall) { 
-                            // skip last reflected ball
-                            continue;
-                        }*/
+                    for enemy in self.enemies.iter() {
+
                         let object_size = enemy.size;
                         let object_size_plus_error = object_size + 0.5;
 
