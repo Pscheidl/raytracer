@@ -118,7 +118,6 @@ impl Game {
                     0.0, 
                     1.0];
                 let mut intermediate_projectile = Projectile::new(0.0,0.0,0.0,0.0,0.0,0.0,1.0);  // X Y Z
-                let mut objects_from_wall_towards_light: HashSet<usize> = HashSet::new();
                 let mut objects_from_object_towards_light: HashSet<usize> = HashSet::new();
                 
                 'ray_travel: for _x in 1..100000 { // not using loop for debug in order to handle infinity errors
@@ -240,14 +239,12 @@ impl Game {
                             
                                 LightTracing::WallFoundSearchingForLightSource => {
 
-                                    // we hit an object when searching for a light source                                    
-                                    if !objects_from_wall_towards_light.contains(&enemy_id) {
-                                        objects_from_wall_towards_light.insert(enemy_id);
-                                        buffer_wall_color[0] -= 0.2;
-                                        buffer_wall_color[1] -= 0.2;
-                                        buffer_wall_color[2] -= 0.2;
-                                    }                                    
-                                    //break 'ray_travel // is shadow
+                                    // we hit an object when searching for a light source
+                                    buffer_wall_color[0] -= 0.3;
+                                    buffer_wall_color[1] -= 0.3;
+                                    buffer_wall_color[2] -= 0.3;
+                                    canvas_line[index_column] = buffer_wall_color;
+                                    break 'ray_travel // 1 shadow on the wall is enough
                                 }
                                 LightTracing::IntermediateSearchingForLightSource => {
 

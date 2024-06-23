@@ -4,7 +4,7 @@ Realtime raytracing engine written in Rust.
 
 World consists of box, camera and multiple mirror balls that are moving.
 
-<img alt="Description" src="https://github.com/PavelVavruska/raytracer/blob/master/raytracer_peek_20240623.gif">
+<img alt="Description" src="https://github.com/PavelVavruska/raytracer/blob/master/raytracer_peek_20240623_2.gif">
 
 ## How To Build It ?
 
