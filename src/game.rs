@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::player;
 
 use crate::enemy;
@@ -116,6 +118,8 @@ impl Game {
                     0.0, 
                     1.0];
                 let mut intermediate_projectile = Projectile::new(0.0,0.0,0.0,0.0,0.0,0.0,1.0);  // X Y Z
+                let mut objects_from_wall_towards_light: HashSet<usize> = HashSet::new();
+                let mut objects_from_object_towards_light: HashSet<usize> = HashSet::new();
                 
                 'ray_travel: for _x in 1..100000 { // not using loop for debug in order to handle infinity errors
 
@@ -166,7 +170,7 @@ impl Game {
                         },
                     }
 
-                    for enemy in self.enemies.iter() {
+                    for (enemy_id, enemy) in self.enemies.iter().enumerate() {
 
                         let object_size = enemy.size;
                         let object_size_plus_error = object_size + 0.5;
@@ -235,32 +239,25 @@ impl Game {
                                 },
                             
                                 LightTracing::WallFoundSearchingForLightSource => {
-                                    // we hit an object when searching for a light source
 
-                                    buffer_wall_color[0] -= 0.2;
-                                    buffer_wall_color[1] -= 0.2;
-                                    buffer_wall_color[2] -= 0.2;
-                                    canvas_line[index_column] = buffer_wall_color;
-                                    
-                                    break 'ray_travel // is shadow
+                                    // we hit an object when searching for a light source                                    
+                                    if !objects_from_wall_towards_light.contains(&enemy_id) {
+                                        objects_from_wall_towards_light.insert(enemy_id);
+                                        buffer_wall_color[0] -= 0.2;
+                                        buffer_wall_color[1] -= 0.2;
+                                        buffer_wall_color[2] -= 0.2;
+                                    }                                    
+                                    //break 'ray_travel // is shadow
                                 }
                                 LightTracing::IntermediateSearchingForLightSource => {
 
                                     // we hit an object during search for a light source = shadow
-                                    buffer_wall_color[0] -= 0.2;
-                                    buffer_wall_color[1] -= 0.2;
-                                    buffer_wall_color[2] -= 0.2;
-
-                                    // reset the projectile to the last know state (towards wall)
-                                    projectile.x = intermediate_projectile.x;
-                                    projectile.y = intermediate_projectile.y;
-                                    projectile.z = intermediate_projectile.z;
-                                    projectile.dx = intermediate_projectile.dx;
-                                    projectile.dy = intermediate_projectile.dy;
-                                    projectile.dz = intermediate_projectile.dz;
-
-                                    // going back to search for a wall
-                                    light_tracer = LightTracing::FindingWall;
+                                    if !objects_from_object_towards_light.contains(&enemy_id) {
+                                        objects_from_object_towards_light.insert(enemy_id);
+                                        buffer_wall_color[0] -= 0.2;
+                                        buffer_wall_color[1] -= 0.2;
+                                        buffer_wall_color[2] -= 0.2;
+                                    }
                                 },
                             }
                         }
