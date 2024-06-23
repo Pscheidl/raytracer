@@ -1,22 +1,10 @@
 # Raytracer
 
-Raycast engine written in Rust.
+Realtime raytracing engine written in Rust.
+
+World consists of box, camera and multiple mirror balls that are moving.
 
 <img alt="Description" src="https://github.com/PavelVavruska/raytracer/blob/master/raytracer_peek_20240623.gif">
-
-20.6.2024 - add shadows from central point light
-
-11.6.2024 - three mirror balls, dot product of two 3D vectors for reflextion, better balls angle
-
-5.6.2024 - two mirror balls, higher resolution, saving rays on the heap
-
-4.6.2024 - fixed bouncing ray of the mirror ball, more colors, moving ball
-
-29.5.2024  - fixed perspective, travel of the ray ends on the wall
-
-9.10.2022 - features one time reflection from mirror balls
-
-6.10.2022 - 2D raytracer (casting rays from the player)
 
 ## How To Build It ?
 

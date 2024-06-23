@@ -19,9 +19,7 @@ pub struct Player {
     pub is_looking_right: bool,
     pub is_roll_left: bool,
     pub is_roll_right: bool,
-    pub is_shooting: bool,
     pub projectiles: Vec::<Vec::<Projectile>>,
-    pub shooting_timer: usize,
 }
 
 impl Player {
@@ -43,9 +41,7 @@ impl Player {
         is_looking_right: bool,
         is_roll_left: bool,
         is_roll_right: bool,
-        is_shooting: bool, 
         projectiles: Vec::<Vec::<Projectile>>,
-        shooting_timer: usize,
     ) -> Player {
         Player {
             x,
@@ -65,9 +61,7 @@ impl Player {
             is_looking_right,
             is_roll_left,
             is_roll_right,
-            is_shooting,
             projectiles,
-            shooting_timer,
         }
     }
     pub fn spawn_new_rays(&mut self) {

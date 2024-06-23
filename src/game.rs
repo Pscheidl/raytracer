@@ -20,22 +20,19 @@ pub struct Game {
     pub player: player::Player,
     pub enemies: Vec<enemy::Enemy>,
     pub room: room::Room,
-    pub enemy_spawn_difficulty: usize,
-    pub enemy_spawn_ticks: usize,
 }
 
 impl Game {
     pub fn new() -> Game {
-
-        let mut enemies =  Vec::new();
         /*
-        E N E M Y
+        Space orientation:
+
+           Y - | +down
+           X - -  +right
+           Z - / +far
         */
 
-        /* Y - | +down
-           X - -  +right
-           Z - / +far*/
-
+        let mut enemies =  Vec::new();
         enemies.push(enemy::Enemy::new(255.0, 100.0, 220.0, 30.0, 1000, enemy::EnemyType::Sphere, 5.0, 0.0, 0.0));
         enemies.push(enemy::Enemy::new(250.0, 45.0, 220.0, 30.0, 1000, enemy::EnemyType::Sphere, -5.0, 0.0, 0.0));
         enemies.push(enemy::Enemy::new(250.0, 45.0, 50.0, 30.0, 1000, enemy::EnemyType::Sphere, -5.0, 0.0, 0.0));
@@ -60,13 +57,9 @@ impl Game {
                 false,
                 false,
                 false,
-                false,
                 Vec::new(),
-                50,
             ),
             enemies: enemies,
-            enemy_spawn_ticks: 150,
-            enemy_spawn_difficulty: 50,
             room: room::Room::new(300.0,150.0,400.0)
         }
     }
@@ -82,9 +75,6 @@ impl Game {
             piston_window::Key::D => self.player.is_moving_right = true,
             piston_window::Key::Q => self.player.is_moving_forward = true,
             piston_window::Key::E => self.player.is_moving_backward = true,
-            piston_window::Key::RCtrl => self.player.is_shooting = true,
-            piston_window::Key::LCtrl => self.player.is_shooting = true,
-
             _ => {}
         };
     }
@@ -100,8 +90,6 @@ impl Game {
             piston_window::Key::D => self.player.is_moving_right = false,
             piston_window::Key::Q => self.player.is_moving_forward = false,
             piston_window::Key::E => self.player.is_moving_backward = false,
-            piston_window::Key::RCtrl => self.player.is_shooting = false,
-            piston_window::Key::LCtrl => self.player.is_shooting = false,
             _ => {}
         };
     }  
