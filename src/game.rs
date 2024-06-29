@@ -48,6 +48,7 @@ impl Game {
                 false,
                 false,
                 false,
+                false,
                 Vec::new(),
             ),
             enemies: enemies,
@@ -66,6 +67,7 @@ impl Game {
             piston_window::Key::D => self.player.is_moving_right = true,
             piston_window::Key::Q => self.player.is_moving_forward = true,
             piston_window::Key::E => self.player.is_moving_backward = true,
+            piston_window::Key::L => self.player.is_low_detail_render = true,
             _ => {}
         };
     }
@@ -81,6 +83,7 @@ impl Game {
             piston_window::Key::D => self.player.is_moving_right = false,
             piston_window::Key::Q => self.player.is_moving_forward = false,
             piston_window::Key::E => self.player.is_moving_backward = false,
+            piston_window::Key::H => self.player.is_low_detail_render = false,
             _ => {}
         };
     }  
@@ -102,10 +105,10 @@ impl Game {
                 let current_ray = LightRay::new(*projectile);
                 let current_ray = current_ray.find_wall_color(&self.room, &self.enemies);
                 
-                if true { //TODO high detail option
-                    canvas_line[index_column] = current_ray.compute_shadows(&self.room, &self.enemies);
+                if self.player.is_low_detail_render {
+                    canvas_line[index_column] = current_ray.skip_shadows();                    
                 } else {
-                    canvas_line[index_column] = current_ray.skip_shadows();
+                    canvas_line[index_column] = current_ray.compute_shadows(&self.room, &self.enemies);
                 }
             }
             canvas_line

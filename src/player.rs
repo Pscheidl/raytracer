@@ -19,6 +19,7 @@ pub struct Player {
     pub is_looking_right: bool,
     pub is_roll_left: bool,
     pub is_roll_right: bool,
+    pub is_low_detail_render: bool,
     pub projectiles: Vec::<Vec::<Projectile>>,
 }
 
@@ -41,6 +42,7 @@ impl Player {
         is_looking_right: bool,
         is_roll_left: bool,
         is_roll_right: bool,
+        is_low_detail_render: bool,
         projectiles: Vec::<Vec::<Projectile>>,
     ) -> Player {
         Player {
@@ -61,6 +63,7 @@ impl Player {
             is_looking_right,
             is_roll_left,
             is_roll_right,
+            is_low_detail_render,
             projectiles,
         }
     }
@@ -74,17 +77,17 @@ impl Player {
         }
 
         if self.is_moving_up {
-            self.z -= 3.1;
+            self.y -= 3.1;
         }
 
         if self.is_moving_down {
-            self.z += 3.1;
-        }
-        if self.is_moving_backward {
             self.y += 3.1;
         }
+        if self.is_moving_backward {
+            self.z += 3.1;
+        }
         if self.is_moving_forward {
-            self.y -= 3.1;
+            self.z -= 3.1;
         }
 
         if self.is_looking_up {
@@ -97,15 +100,17 @@ impl Player {
         let delta_z: f64 = 2.0;
         self.projectiles.clear();
 
+        let mut vector_len_coef = 5.0; // lower to increase FPS (1 is minimum, 5 for better quality)
+        if self.is_low_detail_render {
+            vector_len_coef = 1.0;
+        }
         for ray_y in 0..500 { // WINDOW_HEIGHT
             let delta_y = -3.0 + 6.0 / 500.0 * ray_y as f64;   
             let mut projectile_row: Vec<Projectile> = Vec::new();
 
             for ray_x in 0..500 { // WINDOW_WIDTH
-                let delta_x: f64 = -3.0 + 6.0 / 500.0 * ray_x as f64;
-                let vector_len_coef = 5.0; // lower to increase FPS (1 is minimum, 5 for better quality)
+                let delta_x: f64 = -3.0 + 6.0 / 500.0 * ray_x as f64;                
                 let vec_len = (delta_x.powf(2.0) + delta_y.powf(2.0) + delta_z.powf(2.0)).sqrt() * vector_len_coef;                
-
                 
                 projectile_row.push(Projectile::new(
                     self.x,

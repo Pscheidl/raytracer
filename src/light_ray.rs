@@ -1,6 +1,6 @@
 use std::{collections::HashSet, rc::Rc};
 
-use crate::{enemy::Enemy, projectile::Projectile, room::Room};
+use crate::{enemy::Enemy, player, projectile::Projectile, room::Room};
 
 
 // 1.6-1.8 FPS before usage of RAY state
@@ -75,11 +75,11 @@ impl LightRay<ColorFoundSearchingForLightSource> {
         // wall shadows
         match self.state.option_wall_collision_vec  {
             Some(wall_collision_vec) => {
-                wall_shadow_count = Self::trace_ray_towards_light(wall_collision_vec,  4, room, objects);
+                wall_shadow_count = Self::trace_ray_towards_light(wall_collision_vec,  1, room, objects); // only one shadow maximum is cast from all objects
             }
             None => print!("wall was not detected, error"),
         }
-        for _x in 0..wall_shadow_count.min(1) {
+        for _x in 0..wall_shadow_count {
             shadow_color[0] -= 0.15;
             shadow_color[1] -= 0.15;
             shadow_color[2] -= 0.15;
@@ -197,8 +197,8 @@ impl LightRay<FindingColor> {
     
                     break 'ray_travel // wall is the end of the room
                 }
-            }            
-
+            }
+            
             // check objects            
             for (enemy_id, enemy) in objects.iter().enumerate() {
 
@@ -213,7 +213,6 @@ impl LightRay<FindingColor> {
                 if enemy_to_projectile_dx.abs() > object_size_plus_error || enemy_to_projectile_dy.abs() > object_size_plus_error || enemy_to_projectile_dz.abs() > object_size_plus_error {
                     continue;
                 }
-
                 // Compute expensive distance
                 let len_projectile_to_core = ((enemy_to_projectile_dx).powf(2.0) + (enemy_to_projectile_dy).powf(2.0) + (enemy_to_projectile_dz).powf(2.0)).sqrt();
 

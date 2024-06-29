@@ -1,6 +1,6 @@
 # Raytracer
 
-Realtime raytracing engine written in Rust.
+Realtime 3D raytracing engine written in Rust.
 
 World consists of box, camera and multiple mirror balls that are moving.
 
@@ -18,11 +18,17 @@ The executable binary will appear in `target/debug`, called `raytracer`.
 
 ## Controls
 
-- move arrow keys/ASWD
+- move camera keys: 
+    X axis: AD
+    Y axis: WS
+    Z axis: QE
+- low detail render enable key: L
+- low detail rander disable key: H
 
 ## TODOs
 
-- 3D raytrace/cast
+- add new object types
+- add new materials
 
 ## Bugs
 
