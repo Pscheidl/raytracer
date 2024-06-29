@@ -7,6 +7,7 @@ mod player;
 mod projectile;
 mod enemy;
 mod room;
+mod light_ray;
 
 use drawing::to_gui_coord_u32;
 use game::Game;

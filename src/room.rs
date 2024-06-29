@@ -20,6 +20,30 @@ impl Room {
         }
     }
 
+    pub fn is_outside(self, projectile: &Projectile) -> bool {
+        if projectile.x < 0.0 {
+            return true;
+        }
+        if projectile.x > self.x {
+            return true;
+        }
+
+        if projectile.y < 0.0 {
+            return true;
+        }
+        if projectile.y > self.y {
+            return true;
+        }
+
+        if projectile.z < 0.0 {
+            return true;
+        }
+        if projectile.z > self.z {
+            return true;
+        }
+        return false;
+    }
+
     pub fn get_wall_color_at_projectile(self, projectile: &Projectile) -> Option<[f32; 4]> {
         let is_x_alternate = (projectile.x as i32/25) % 2 == 0;
         let is_y_alternate = (projectile.y as i32/25) % 2 == 0;
