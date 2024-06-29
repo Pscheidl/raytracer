@@ -21,24 +21,24 @@ impl Room {
     }
 
     pub fn is_outside(self, projectile: &Projectile) -> bool {
-        if projectile.x < 0.0 {
+        if projectile.x <= 0.0 {
             return true;
         }
-        if projectile.x > self.x {
-            return true;
-        }
-
-        if projectile.y < 0.0 {
-            return true;
-        }
-        if projectile.y > self.y {
+        if projectile.x >= self.x {
             return true;
         }
 
-        if projectile.z < 0.0 {
+        if projectile.y <= 0.0 {
             return true;
         }
-        if projectile.z > self.z {
+        if projectile.y >= self.y {
+            return true;
+        }
+
+        if projectile.z <= 0.0 {
+            return true;
+        }
+        if projectile.z >= self.z {
             return true;
         }
         return false;

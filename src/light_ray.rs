@@ -61,13 +61,6 @@ impl<S: LightRayState> LightRay<S>  {
             state: next,
         }
     }
-
-    pub fn tick(mut self) -> LightRay<S> {
-        self.projectile.x = self.projectile.x + self.projectile.dx;
-        self.projectile.y = self.projectile.y + self.projectile.dy;
-        self.projectile.z = self.projectile.z + self.projectile.dz;
-        self
-    }
 }
 
 impl LightRay<ColorFoundSearchingForLightSource> {
@@ -82,7 +75,7 @@ impl LightRay<ColorFoundSearchingForLightSource> {
         // wall shadows
         match self.state.option_wall_collision_vec  {
             Some(wall_collision_vec) => {
-                wall_shadow_count = Self::trace_ray_towards_light(wall_collision_vec, [room.x / 2.0, 0.0, room.z / 2.0], 4, room, objects);
+                wall_shadow_count = Self::trace_ray_towards_light(wall_collision_vec,  4, room, objects);
             }
             None => print!("wall was not detected, error"),
         }
@@ -95,7 +88,7 @@ impl LightRay<ColorFoundSearchingForLightSource> {
         // object shadows
         match self.state.option_first_object_collision_vec  {
             Some(first_object_collision_vec) => {
-                object_shadow_count = Self::trace_ray_towards_light(first_object_collision_vec, [room.x / 2.0, 0.0, room.z / 2.0], 4, room, objects);
+                object_shadow_count = Self::trace_ray_towards_light(first_object_collision_vec, 4, room, objects);
             }
             None => {},
         }
@@ -107,10 +100,11 @@ impl LightRay<ColorFoundSearchingForLightSource> {
         return shadow_color;  
     }
 
-    fn trace_ray_towards_light(start_vec: [f64; 3], light_vec: [f64; 3], max_objects: usize, room: &Room, objects: &Vec<Enemy>) -> usize {
-        let light_to_projectile_dx = light_vec[0]  - start_vec[0];
-        let light_to_projectile_dy = light_vec[1]  - start_vec[1];
-        let light_to_projectile_dz = light_vec[2]  - start_vec[2];
+    fn trace_ray_towards_light(start_vec: [f64; 3], max_objects: usize, room: &Room, objects: &Vec<Enemy>) -> usize {
+        let light_vec = [room.x / 2.0, 0.0, room.z / 2.0]; // hard-coded light source
+        let light_to_projectile_dx = light_vec[0] - start_vec[0];
+        let light_to_projectile_dy = light_vec[1] - start_vec[1];
+        let light_to_projectile_dz = light_vec[2] - start_vec[2];
         let len_light_to_projectile = (light_to_projectile_dx.powf(2.0) + light_to_projectile_dy.powf(2.0) + light_to_projectile_dz.powf(2.0)).sqrt();
 
         let delta_x = light_to_projectile_dx / len_light_to_projectile;
@@ -121,22 +115,18 @@ impl LightRay<ColorFoundSearchingForLightSource> {
             start_vec[0],
             start_vec[1], 
             start_vec[2], 
-            delta_x, 
-            delta_y, 
-            delta_z, 
+            delta_x,
+            delta_y,
+            delta_z,
             1.0);
 
         let mut objects_from_object_towards_light: HashSet<usize> = HashSet::new();
 
         // move the projectile from collision point
-        projectile.x = projectile.x + projectile.dx;
-        projectile.y = projectile.y + projectile.dy;
-        projectile.z = projectile.z + projectile.dz;
+        projectile.increment();
 
         'outer: for _x in 1..1000000 {
-            projectile.x = projectile.x + projectile.dx;
-            projectile.y = projectile.y + projectile.dy;
-            projectile.z = projectile.z + projectile.dz;
+            projectile.increment();
 
             if room.is_outside(&projectile) {
                 break;
@@ -191,21 +181,23 @@ impl LightRay<FindingColor> {
         'ray_travel: for _x in 1..100000 { // not using loop for debug in order to handle infinity errors
             
             // check walls
-            if let Some(wall_color) = room.get_wall_color_at_projectile(&self.projectile) {
+            if room.is_outside(&self.projectile) { // faster check for end of the room (+20 % FPS)
+                if let Some(wall_color) = room.get_wall_color_at_projectile(&self.projectile) {
                 
-                // add color from the wall
-                self.buffer_wall_color[0] += wall_color[0];
-                self.buffer_wall_color[1] += wall_color[1];
-                self.buffer_wall_color[2] += wall_color[2];
-
-                option_wall_collision_vec = Some([
-                    self.projectile.x.clone(),
-                    self.projectile.y.clone(),
-                    self.projectile.z.clone()
-                    ]);
-
-                break 'ray_travel // wall is the end of the room
-            }
+                    // add color from the wall
+                    self.buffer_wall_color[0] += wall_color[0];
+                    self.buffer_wall_color[1] += wall_color[1];
+                    self.buffer_wall_color[2] += wall_color[2];
+    
+                    option_wall_collision_vec = Some([
+                        self.projectile.x.clone(),
+                        self.projectile.y.clone(),
+                        self.projectile.z.clone()
+                        ]);
+    
+                    break 'ray_travel // wall is the end of the room
+                }
+            }            
 
             // check objects            
             for (enemy_id, enemy) in objects.iter().enumerate() {
@@ -261,13 +253,10 @@ impl LightRay<FindingColor> {
                     }
                     
                     // avoid collision in next iteration
-                    self.projectile.x = self.projectile.x + self.projectile.dx;
-                    self.projectile.y = self.projectile.y + self.projectile.dy;
-                    self.projectile.z = self.projectile.z + self.projectile.dz;
-
+                    self.projectile.increment();
                 }
             }
-            self = self.tick();
+            self.projectile.increment();
         }
         self.transition(ColorFoundSearchingForLightSource { option_first_object_collision_vec, option_wall_collision_vec })
         

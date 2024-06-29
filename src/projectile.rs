@@ -29,4 +29,10 @@ impl Projectile {
             time_to_live,
         }
     }
+
+    pub fn increment(&mut self) {
+        self.x += self.dx;
+        self.y += self.dy;
+        self.z += self.dz;
+    }
 }
