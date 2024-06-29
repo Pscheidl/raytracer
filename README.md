@@ -19,9 +19,14 @@ The executable binary will appear in `target/debug`, called `raytracer`.
 ## Controls
 
 - move camera keys: 
-    X axis: AD
+-X axis: AD
+```
     Y axis: WS
     Z axis: QE
+    X axis roll: RF
+    Y axis roll: TG
+    Z axis roll: CV
+```
 - low detail render enable key: L
 - low detail rander disable key: H
 

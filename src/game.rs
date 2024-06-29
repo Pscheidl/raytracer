@@ -34,6 +34,9 @@ impl Game {
                 140 as f64,
                 60 as f64,
                 155.0,
+                0.0,
+                0.0,
+                0.0,
                 10.0,
                 10.0,
                 false,
@@ -68,6 +71,12 @@ impl Game {
             piston_window::Key::Q => self.player.is_moving_forward = true,
             piston_window::Key::E => self.player.is_moving_backward = true,
             piston_window::Key::L => self.player.is_low_detail_render = true,
+            piston_window::Key::R => self.player.is_looking_up = true,
+            piston_window::Key::F => self.player.is_looking_down = true,
+            piston_window::Key::T => self.player.is_roll_left = true,
+            piston_window::Key::G => self.player.is_roll_right = true,
+            piston_window::Key::C => self.player.is_looking_left = true,
+            piston_window::Key::V => self.player.is_looking_right = true,
             _ => {}
         };
     }
@@ -84,6 +93,12 @@ impl Game {
             piston_window::Key::Q => self.player.is_moving_forward = false,
             piston_window::Key::E => self.player.is_moving_backward = false,
             piston_window::Key::H => self.player.is_low_detail_render = false,
+            piston_window::Key::R => self.player.is_looking_up = false,
+            piston_window::Key::F => self.player.is_looking_down = false,
+            piston_window::Key::T => self.player.is_roll_left = false,
+            piston_window::Key::G => self.player.is_roll_right = false,
+            piston_window::Key::C => self.player.is_looking_left = false,
+            piston_window::Key::V => self.player.is_looking_right = false,
             _ => {}
         };
     }  
