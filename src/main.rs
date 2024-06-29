@@ -7,6 +7,7 @@ mod player;
 mod projectile;
 mod enemy;
 mod room;
+mod light_ray;
 
 use drawing::to_gui_coord_u32;
 use game::Game;
@@ -86,9 +87,14 @@ fn main() {
             let since_the_epoch_in_ms = SystemTime::now() 
                 .duration_since(start_time)
                 .expect("Time went backwards").as_millis();
-
+            
+            let mut detail_string = "high";
+            if game.player.is_low_detail_render {
+                detail_string = "low";
+            }
+            
             text::Text::new_color([1.0, 1.0, 1.0, 1.0], 30).draw(
-                format!("FrameTime: {:.2?} ms, FPS: {:.2?}, X {:#.2?}, Y {:#.2?}, Z {:#.2?}", since_the_epoch_in_ms, 1000.0/since_the_epoch_in_ms as f64, game.player.x, game.player.y, game.player.z).as_str(),
+                format!("Detail: {} FrameTime: {:.2?} ms, FPS: {:.2?}, X {:#.2?}, Y {:#.2?}, Z {:#.2?}", detail_string, since_the_epoch_in_ms, 1000.0/since_the_epoch_in_ms as f64, game.player.x, game.player.y, game.player.z).as_str(),
             &mut glyphs,
             &c.draw_state,
             transform, g
