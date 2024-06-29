@@ -1,6 +1,6 @@
 use std::{collections::HashSet, rc::Rc};
 
-use crate::{enemy::Enemy, player, projectile::Projectile, room::Room};
+use crate::{enemy::Enemy, player, projectile::{self, Projectile}, room::Room};
 
 
 // 1.6-1.8 FPS before usage of RAY state
@@ -198,7 +198,7 @@ impl LightRay<FindingColor> {
                     break 'ray_travel // wall is the end of the room
                 }
             }
-            
+
             // check objects            
             for (enemy_id, enemy) in objects.iter().enumerate() {
 
