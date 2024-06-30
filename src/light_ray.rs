@@ -69,51 +69,59 @@ impl LightRay<ColorFoundSearchingForLightSource> {
     }
 
     pub fn compute_shadows(self, room: &Room, objects: &Vec<Enemy>) -> [f32; 4]{
+
         let mut shadow_color = self.buffer_wall_color;
         let mut wall_shadow_count = 0;
         let mut object_shadow_count = 0;
+        let mut light_wall = 1.0;
+        let mut light_object = 1.0;
         // wall shadows
         match self.state.option_wall_collision_vec  {
             Some(wall_collision_vec) => {
-                wall_shadow_count = Self::trace_ray_towards_light(wall_collision_vec,  1, room, objects); // only one shadow maximum is cast from all objects
+                (wall_shadow_count, light_wall) = Self::trace_ray_towards_light(wall_collision_vec,  1, room, objects); // only one shadow maximum is cast from all objects
             }
             None => print!("wall was not detected, error"),
-        }
-        for _x in 0..wall_shadow_count {
-            shadow_color[0] -= 0.15;
-            shadow_color[1] -= 0.15;
-            shadow_color[2] -= 0.15;
         }
         
         // object shadows
         match self.state.option_first_object_collision_vec  {
             Some(first_object_collision_vec) => {
-                object_shadow_count = Self::trace_ray_towards_light(first_object_collision_vec, 4, room, objects);
+                (object_shadow_count, light_object) = Self::trace_ray_towards_light(first_object_collision_vec, 4, room, objects);
             }
             None => {},
         }
-        for _x in 0..object_shadow_count {
-            shadow_color[0] -= 0.2;
-            shadow_color[1] -= 0.2;
-            shadow_color[2] -= 0.2;
+        shadow_color[0] = (shadow_color[0] + 0.1).min(1.0)*light_wall*light_object;
+        shadow_color[1] = (shadow_color[1] + 0.1).min(1.0)*light_wall*light_object;
+        shadow_color[2] = (shadow_color[2] + 0.1).min(1.0)*light_wall*light_object;
+        for _x in 0..wall_shadow_count {
+            shadow_color[0] -= 0.1;
+            shadow_color[1] -= 0.1;
+            shadow_color[2] -= 0.1;
         }
+        for _x in 0..object_shadow_count {
+            shadow_color[0] -= 0.05;
+            shadow_color[1] -= 0.05;
+            shadow_color[2] -= 0.05;
+        }
+
+        
         return shadow_color;  
     }
 
-    fn trace_ray_towards_light(start_vec: [f64; 3], max_objects: usize, room: &Room, objects: &Vec<Enemy>) -> usize {
+    fn trace_ray_towards_light(start_vec: [f64; 3], max_objects: usize, room: &Room, objects: &Vec<Enemy>) -> (usize, f32) {
         let light_vec = [room.x / 2.0, 0.0, room.z / 2.0]; // hard-coded light source
         let light_to_projectile_dx = light_vec[0] - start_vec[0];
         let light_to_projectile_dy = light_vec[1] - start_vec[1];
         let light_to_projectile_dz = light_vec[2] - start_vec[2];
         let len_light_to_projectile = (light_to_projectile_dx.powf(2.0) + light_to_projectile_dy.powf(2.0) + light_to_projectile_dz.powf(2.0)).sqrt();
-
+        let light = (75.0 / len_light_to_projectile) as f32;
         let delta_x = light_to_projectile_dx / len_light_to_projectile;
         let delta_y = light_to_projectile_dy / len_light_to_projectile;
         let delta_z = light_to_projectile_dz / len_light_to_projectile;
 
         let mut projectile = Projectile::new(
             start_vec[0],
-            start_vec[1], 
+            start_vec[1],
             start_vec[2], 
             delta_x,
             delta_y,
@@ -127,6 +135,7 @@ impl LightRay<ColorFoundSearchingForLightSource> {
 
         'outer: for _x in 1..1000000 {
             projectile.increment();
+            
 
             if room.is_outside(&projectile) {
                 break;
@@ -160,7 +169,7 @@ impl LightRay<ColorFoundSearchingForLightSource> {
             }            
         }
 
-        return objects_from_object_towards_light.len();
+        return (objects_from_object_towards_light.len(), light);
     }
 }
 

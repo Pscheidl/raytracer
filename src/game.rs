@@ -25,9 +25,9 @@ impl Game {
 
         let mut enemies =  Vec::new();
         enemies.push(enemy::Enemy::new(255.0, 100.0, 220.0, 30.0, 1000, enemy::EnemyType::Sphere, 5.0, 0.0, 0.0));
-        enemies.push(enemy::Enemy::new(250.0, 45.0, 220.0, 30.0, 1000, enemy::EnemyType::Sphere, -5.0, 0.0, 0.0));
+        enemies.push(enemy::Enemy::new(250.0, 45.0, 200.0, 30.0, 1000, enemy::EnemyType::Sphere, -5.0, 0.0, 0.0));
         enemies.push(enemy::Enemy::new(250.0, 45.0, 50.0, 30.0, 1000, enemy::EnemyType::Sphere, -5.0, 0.0, 0.0));
-        enemies.push(enemy::Enemy::new(55.0, 35.0, 250.0, 30.0, 1000, enemy::EnemyType::Sphere, 5.0, 0.0, 0.0));
+        enemies.push(enemy::Enemy::new(55.0, 35.0, 280.0, 30.0, 1000, enemy::EnemyType::Sphere, 5.0, 0.0, 0.0));
 
         Game {
             player: player::Player::new(
@@ -116,12 +116,11 @@ impl Game {
             let mut canvas_line: Vec<Color> = [[0.0, 0.0, 0.0, 0.0]; 500].to_vec();
             for (index_column, projectile) in projectile_row.iter_mut().enumerate() {
                 
-                // helper vars for each projectile
                 let current_ray = LightRay::new(*projectile);
                 let current_ray = current_ray.find_wall_color(&self.room, &self.enemies);
                 
                 if self.player.is_low_detail_render {
-                    canvas_line[index_column] = current_ray.skip_shadows();                    
+                    canvas_line[index_column] = current_ray.skip_shadows();
                 } else {
                     canvas_line[index_column] = current_ray.compute_shadows(&self.room, &self.enemies);
                 }
