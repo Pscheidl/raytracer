@@ -15,8 +15,8 @@ use piston_window::types::Color;
 use piston_window::*;
 
 const BACK_COLOR: Color = [0.0, 0.0, 0.0, 1.0];
-const WINDOW_WIDTH: usize = 500*2;
-const WINDOW_HEIGHT: usize = 500*2 + 50;
+const WINDOW_WIDTH: usize = 512*2;
+const WINDOW_HEIGHT: usize = 512*2 + 50;
 
 pub const TEXT_COLOR: Color = [1.0, 1.0, 1.0, 1.0];
 
