@@ -1,5 +1,8 @@
 extern crate find_folder;
 extern crate piston_window;
+extern crate image;
+
+use image::{RgbaImage, Rgba, ImageBuffer};
 
 mod drawing;
 mod game;
@@ -13,10 +16,13 @@ use drawing::to_gui_coord_u32;
 use game::Game;
 use piston_window::types::Color;
 use piston_window::*;
+use smallvec::SmallVec;
+
 
 const BACK_COLOR: Color = [0.0, 0.0, 0.0, 1.0];
 const WINDOW_WIDTH: usize = 512*2;
 const WINDOW_HEIGHT: usize = 512*2 + 50;
+const PIXEL_MULTIPLIER: usize = 2;
 
 pub const TEXT_COLOR: Color = [1.0, 1.0, 1.0, 1.0];
 
@@ -56,6 +62,11 @@ fn main() {
     // Create a world
     let mut game = Game::new();
     let mut start_time = SystemTime::now();
+
+    let mut texture_context = TextureContext {
+        factory: window.factory.clone(),
+        encoder: window.factory.create_command_buffer().into()
+    };
     // Event loop
     while let Some(event) = window.next() {
         
@@ -71,17 +82,22 @@ fn main() {
         // Draw all of them
         window.draw_2d(&event, |c, g, device| {
             piston_window::clear(BACK_COLOR, g);
-            
-            let result = game.compute_one_tick();
 
-            for color_row in 0..result.len() {
-                for color_num in 0..result[color_row].len() {
-                let scaled_x = color_num * 2;
-                let scaled_z = color_row * 2;
-                draw_rectange( result[color_row][color_num], scaled_x as f64, scaled_z as f64, 2, 2, &c, g);
+            let result: SmallVec<[Box<SmallVec<[[f32; 4]; 512]>>; 512]> = game.compute_one_tick();
+            
+            let mut img = RgbaImage::new(512, 512);
+
+            for (y, row) in result.iter().enumerate() {
+                let row = row.clone().into_inner().unwrap();
+                for (x, val) in row.iter().enumerate() {
+                    img.put_pixel(x as u32, y as u32, Rgba([(val[0]*255_f32) as u8, (val[1]*255_f32) as u8, (val[2]*255_f32) as u8, (val[3]*255_f32) as u8]));
                 }
             }
-                    
+         
+            let texture = Texture::from_image(&mut texture_context, &img, &TextureSettings::new()).unwrap();        
+            
+            image(&texture, c.transform.scale(2.0, 2.0), g);
+            
             // draw text            
             let transform = c.transform.trans(10.0, WINDOW_HEIGHT as f64 - 12.0);
             let since_the_epoch_in_ms = SystemTime::now() 

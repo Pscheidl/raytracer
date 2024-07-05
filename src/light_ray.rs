@@ -182,7 +182,7 @@ impl LightRay<FindingColor> {
         }
     }
 
-    pub fn find_wall_color(mut self, room: &Room, objects: &Vec<Enemy>) -> LightRay<ColorFoundSearchingForLightSource> {
+    pub fn find_wall_color(mut self, room: &Room, objects: &Vec<Enemy>) -> LightRay<ColorFoundSearchingForLightSource>{
 
         let mut option_first_object_collision_vec: Option<[f64;3]> = None;
         let mut option_wall_collision_vec: Option<[f64;3]> = None;
@@ -266,7 +266,7 @@ impl LightRay<FindingColor> {
             }
             self.projectile.increment();
         }
-        self.transition(ColorFoundSearchingForLightSource { option_first_object_collision_vec, option_wall_collision_vec })
+    self.transition(ColorFoundSearchingForLightSource { option_first_object_collision_vec, option_wall_collision_vec })
         
     }
 }

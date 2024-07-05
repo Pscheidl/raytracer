@@ -24,6 +24,7 @@ pub fn draw_rectange(
 ) {
     let gui_start_x = to_gui_coord(start_x);
     let gui_start_y = to_gui_coord(start_y);
+
     piston_window::
     rectangle(
         color,
