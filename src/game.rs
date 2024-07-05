@@ -1,4 +1,6 @@
+use std::borrow::BorrowMut;
 use std::ops::Deref;
+use std::ops::DerefMut;
 
 use crate::player;
 use crate::enemy;
@@ -6,6 +8,9 @@ use crate::light_ray::LightRay;
 use crate::projectile::Projectile;
 use crate::room;
 
+use image::Pixel;
+use image::Rgba;
+use image::RgbaImage;
 use smallvec::{SmallVec, smallvec};
 use piston_window::types::Color;
 use rayon::prelude::*;
@@ -110,7 +115,7 @@ impl Game {
     }  
 
     /// Draws entire world.
-    pub fn compute_one_tick(&mut self) -> SmallVec<[Box<SmallVec<[Color;ARRAY_SIZE]>>;ARRAY_SIZE]> {
+    pub fn compute_one_tick(&mut self) -> image::ImageBuffer<Rgba<u8>, Vec<u8>> {
 
         // setup world
         for enemy in self.enemies.iter_mut() {
@@ -124,54 +129,51 @@ impl Game {
         if self.player.is_low_detail_render {
             vector_len_coef = 1.0;
         }
+        
+        //let mut canvas_vec: Vec<[[u8;4];512]> = [[[0_u8,0_u8,0_u8,0_u8]; 512]; 512].to_vec();
+        let mut img: image::ImageBuffer<Rgba<u8>, Vec<u8>> = RgbaImage::new(512, 512);
 
-        let mut canvas_vec: SmallVec<[Box<SmallVec<[Color;ARRAY_SIZE]>>;ARRAY_SIZE]> = smallvec![Box::new(smallvec![[0.0, 0.0, 0.0, 0.0];ARRAY_SIZE]); ARRAY_SIZE];
         // iterate over all projectiles 
-        canvas_vec.par_iter_mut().enumerate().for_each(|(idx, canvas_line)| {
+        img.par_enumerate_pixels_mut().for_each(|(pixel_pos_y, pixel_pos_x, pixel)| {
 
-            let ray_y:i32 = idx as i32 - 256;
-            let delta_y = ray_y as f64 / 100.0;
-            let canvas_line = canvas_line.as_mut();
+            let delta_y: f64 = (-256_f64 + (pixel_pos_x as f64)) / 100.0;            
+            let delta_x: f64 = (-256_f64 + (pixel_pos_y as f64)) / 100.0;
+            let vec_len = (delta_x.powf(2.0) + delta_y.powf(2.0) + delta_z.powf(2.0)).sqrt() * vector_len_coef;
+            
+            let norm_delta_x = delta_x / vec_len;
+            let norm_delta_y = delta_y / vec_len;
+            let norm_delta_z = delta_z / vec_len;
 
-            for (index_column, ray_x) in (-256..256).enumerate() { // WINDOW_WIDTH
-                let delta_x: f64 = ray_x as f64 / 100.0;
-                let vec_len = (delta_x.powf(2.0) + delta_y.powf(2.0) + delta_z.powf(2.0)).sqrt() * vector_len_coef;
-                
-                let norm_delta_x = delta_x / vec_len;
-                let norm_delta_y = delta_y / vec_len;
-                let norm_delta_z = delta_z / vec_len;
+            let rot_x_delta_x = norm_delta_x;
+            let rot_x_delta_y = norm_delta_y*self.player.angle_y.cos() - norm_delta_z*self.player.angle_y.sin();
+            let rot_x_delta_z = norm_delta_y*self.player.angle_y.sin() + norm_delta_z*self.player.angle_y.cos();
 
-                let rot_x_delta_x = norm_delta_x;
-                let rot_x_delta_y = norm_delta_y*self.player.angle_y.cos() - norm_delta_z*self.player.angle_y.sin();
-                let rot_x_delta_z = norm_delta_y*self.player.angle_y.sin() + norm_delta_z*self.player.angle_y.cos();
+            let rot_x_y_delta_x = rot_x_delta_x*self.player.angle_x.cos() - rot_x_delta_y*self.player.angle_x.sin();
+            let rot_x_y_delta_y = rot_x_delta_x*self.player.angle_x.sin() + rot_x_delta_y*self.player.angle_x.cos();
+            let rot_x_y_delta_z = rot_x_delta_z;
 
-                let rot_x_y_delta_x = rot_x_delta_x*self.player.angle_x.cos() - rot_x_delta_y*self.player.angle_x.sin();
-                let rot_x_y_delta_y = rot_x_delta_x*self.player.angle_x.sin() + rot_x_delta_y*self.player.angle_x.cos();
-                let rot_x_y_delta_z = rot_x_delta_z;
+            let rot_x_y_z_delta_x = rot_x_y_delta_x*self.player.angle_z.cos() + rot_x_y_delta_z*self.player.angle_z.sin();
+            let rot_x_y_z_delta_y = rot_x_y_delta_y;
+            let rot_x_y_z_delta_z = -rot_x_y_delta_x*self.player.angle_z.sin() + rot_x_y_delta_z*self.player.angle_z.cos();
 
-                let rot_x_y_z_delta_x = rot_x_y_delta_x*self.player.angle_z.cos() + rot_x_y_delta_z*self.player.angle_z.sin();
-                let rot_x_y_z_delta_y = rot_x_y_delta_y;
-                let rot_x_y_z_delta_z = -rot_x_y_delta_x*self.player.angle_z.sin() + rot_x_y_delta_z*self.player.angle_z.cos();
-
-                let projectile = Projectile::new(
-                    self.player.x,
-                    self.player.y,
-                    self.player.z,
-                    rot_x_y_z_delta_x,
-                    rot_x_y_z_delta_y,
-                    rot_x_y_z_delta_z,
-                    1.0 // 1.0 max brightness 0.0 dead
-                );
-                let current_ray = LightRay::new(projectile);
-                let current_ray = current_ray.find_wall_color(&self.room, &self.enemies);
-                
-                if self.player.is_low_detail_render {
-                    canvas_line[index_column] = current_ray.skip_shadows();
-                } else {
-                    canvas_line[index_column] = current_ray.compute_shadows(&self.room, &self.enemies);
-                }
+            let projectile = Projectile::new(
+                self.player.x,
+                self.player.y,
+                self.player.z,
+                rot_x_y_z_delta_x,
+                rot_x_y_z_delta_y,
+                rot_x_y_z_delta_z,
+                1.0 // 1.0 max brightness 0.0 dead
+            );
+            let current_ray = LightRay::new(projectile);
+            let current_ray = current_ray.find_wall_color(&self.room, &self.enemies);
+            
+            if self.player.is_low_detail_render {
+                pixel.0 = current_ray.skip_shadows();
+            } else {                    
+                pixel.0 = current_ray.compute_shadows(&self.room, &self.enemies);
             }
         });
-        canvas_vec
+        img
     }
 }

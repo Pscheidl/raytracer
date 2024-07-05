@@ -16,6 +16,7 @@ use drawing::to_gui_coord_u32;
 use game::Game;
 use piston_window::types::Color;
 use piston_window::*;
+use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator};
 use smallvec::SmallVec;
 
 
@@ -83,18 +84,18 @@ fn main() {
         window.draw_2d(&event, |c, g, device| {
             piston_window::clear(BACK_COLOR, g);
 
-            let result: SmallVec<[Box<SmallVec<[[f32; 4]; 512]>>; 512]> = game.compute_one_tick();
+            let result = game.compute_one_tick();
             
-            let mut img = RgbaImage::new(512, 512);
+            //let mut img = RgbaImage::new(512, 512);
 
-            for (y, row) in result.iter().enumerate() {
-                let row = row.clone().into_inner().unwrap();
+            /*for (y, row) in result.iter().enumerate() {
+                //let row = row..into_inner().unwrap();
                 for (x, val) in row.iter().enumerate() {
-                    img.put_pixel(x as u32, y as u32, Rgba([(val[0]*255_f32) as u8, (val[1]*255_f32) as u8, (val[2]*255_f32) as u8, (val[3]*255_f32) as u8]));
+                    img.put_pixel(x as u32, y as u32, Rgba(*val));                   
                 }
-            }
+            }*/
          
-            let texture = Texture::from_image(&mut texture_context, &img, &TextureSettings::new()).unwrap();        
+            let texture = Texture::from_image(&mut texture_context, &result, &TextureSettings::new()).unwrap();        
             
             image(&texture, c.transform.scale(2.0, 2.0), g);
             

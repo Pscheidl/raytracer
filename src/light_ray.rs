@@ -64,11 +64,11 @@ impl<S: LightRayState> LightRay<S>  {
 }
 
 impl LightRay<ColorFoundSearchingForLightSource> {
-    pub fn skip_shadows(self) -> [f32; 4]{
-        return self.buffer_wall_color;
+    pub fn skip_shadows(self) -> [u8; 4]{
+        return [(self.buffer_wall_color[0]*255_f32) as u8, (self.buffer_wall_color[1]*255_f32) as u8,(self.buffer_wall_color[2]*255_f32) as u8,(self.buffer_wall_color[3]*255_f32) as u8];
     }
 
-    pub fn compute_shadows(self, room: &Room, objects: &Vec<Enemy>) -> [f32; 4]{
+    pub fn compute_shadows(self, room: &Room, objects: &Vec<Enemy>) -> [u8; 4]{
 
         let mut shadow_color = self.buffer_wall_color;
         let mut wall_shadow_count = 0;
@@ -105,7 +105,7 @@ impl LightRay<ColorFoundSearchingForLightSource> {
         }
 
         
-        return shadow_color;  
+        return [(shadow_color[0]*255_f32) as u8, (shadow_color[1]*255_f32) as u8,(shadow_color[2]*255_f32) as u8,(shadow_color[3]*255_f32) as u8];
     }
 
     fn trace_ray_towards_light(start_vec: [f64; 3], max_objects: usize, room: &Room, objects: &Vec<Enemy>) -> (usize, f32) {
@@ -186,6 +186,7 @@ impl LightRay<FindingColor> {
 
         let mut option_first_object_collision_vec: Option<[f64;3]> = None;
         let mut option_wall_collision_vec: Option<[f64;3]> = None;
+        
  
         'ray_travel: for _x in 1..100000 { // not using loop for debug in order to handle infinity errors
             
