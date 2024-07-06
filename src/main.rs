@@ -2,8 +2,6 @@ extern crate find_folder;
 extern crate piston_window;
 extern crate image;
 
-use image::{RgbaImage, Rgba, ImageBuffer};
-
 mod drawing;
 mod game;
 mod player;
@@ -16,18 +14,27 @@ use drawing::to_gui_coord_u32;
 use game::Game;
 use piston_window::types::Color;
 use piston_window::*;
-use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator};
-use smallvec::SmallVec;
 
+pub const BACK_COLOR: Color = [0.0, 0.0, 0.0, 1.0];
+pub const CANVAS_WIDTH_HALF: usize = 512;
+pub const CANVAS_MULTIPLIER: usize = 1;
+pub const CANVAS_HEIGHT_HALF: usize = CANVAS_WIDTH_HALF;
+pub const CANVAS_WIDTH: usize = CANVAS_WIDTH_HALF*2;
+pub const CANVAS_HEIGHT: usize = CANVAS_HEIGHT_HALF*2;
+pub const WINDOW_WIDTH: usize = CANVAS_WIDTH*CANVAS_MULTIPLIER;
+pub const WINDOW_HEIGHT: usize = CANVAS_HEIGHT*CANVAS_MULTIPLIER + 50;
 
-const BACK_COLOR: Color = [0.0, 0.0, 0.0, 1.0];
-const WINDOW_WIDTH: usize = 512*2;
-const WINDOW_HEIGHT: usize = 512*2 + 50;
-const PIXEL_MULTIPLIER: usize = 2;
+pub const ROOM_SIZE_X: f64 = 150.0;
+pub const ROOM_SIZE_Y: f64 = 150.0;
+pub const ROOM_SIZE_Z: f64 = 150.0;
+
+pub const LIGHT_POS_X: f64 = ROOM_SIZE_X / 2.0;
+pub const LIGHT_POS_Y: f64 = 0.0;
+pub const LIGHT_POS_Z: f64 = ROOM_SIZE_Z / 2.0;
+
 
 pub const TEXT_COLOR: Color = [1.0, 1.0, 1.0, 1.0];
 
-use crate::drawing::draw_rectange;
 use std::time::SystemTime;
 
 
@@ -79,25 +86,16 @@ fn main() {
             game.key_released(key);
         }
         game.player.spawn_new_rays();  // observe keypress all the time
-                
+        
         // Draw all of them
         window.draw_2d(&event, |c, g, device| {
             piston_window::clear(BACK_COLOR, g);
 
             let result = game.compute_one_tick();
             
-            //let mut img = RgbaImage::new(512, 512);
-
-            /*for (y, row) in result.iter().enumerate() {
-                //let row = row..into_inner().unwrap();
-                for (x, val) in row.iter().enumerate() {
-                    img.put_pixel(x as u32, y as u32, Rgba(*val));                   
-                }
-            }*/
-         
             let texture = Texture::from_image(&mut texture_context, &result, &TextureSettings::new()).unwrap();        
             
-            image(&texture, c.transform.scale(2.0, 2.0), g);
+            image(&texture, c.transform.scale(CANVAS_MULTIPLIER as f64, CANVAS_MULTIPLIER as f64), g);
             
             // draw text            
             let transform = c.transform.trans(10.0, WINDOW_HEIGHT as f64 - 12.0);

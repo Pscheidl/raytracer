@@ -1,21 +1,15 @@
-use std::borrow::BorrowMut;
-use std::ops::Deref;
-use std::ops::DerefMut;
-
 use crate::player;
 use crate::enemy;
 use crate::light_ray::LightRay;
 use crate::projectile::Projectile;
 use crate::room;
 
-use image::Pixel;
 use image::Rgba;
 use image::RgbaImage;
-use smallvec::{SmallVec, smallvec};
-use piston_window::types::Color;
-use rayon::prelude::*;
 
-const ARRAY_SIZE: usize = 512;
+use rayon::prelude::*;
+use crate::{CANVAS_WIDTH, CANVAS_HEIGHT, CANVAS_WIDTH_HALF, CANVAS_HEIGHT_HALF};
+
 
 pub struct Game {
     // World buffers
@@ -35,16 +29,49 @@ impl Game {
         */
 
         let mut enemies =  Vec::new();
-        enemies.push(enemy::Enemy::new(255.0, 100.0, 220.0, 30.0, 1000, enemy::EnemyType::Sphere, 5.0, 0.0, 0.0));
-        enemies.push(enemy::Enemy::new(250.0, 45.0, 200.0, 30.0, 1000, enemy::EnemyType::Sphere, -5.0, 0.0, 0.0));
-        enemies.push(enemy::Enemy::new(250.0, 45.0, 50.0, 30.0, 1000, enemy::EnemyType::Sphere, -5.0, 0.0, 0.0));
-        enemies.push(enemy::Enemy::new(55.0, 35.0, 280.0, 30.0, 1000, enemy::EnemyType::Sphere, 5.0, 0.0, 0.0));
+        
+        const SPHERE_SIZE: f64 = 30.0;
+        const SPHERE_SIZE_PLUS_MARGIN: f64 = SPHERE_SIZE + 10.0;
+        enemies.push(enemy::Enemy::new(
+            crate::ROOM_SIZE_X / 2.0,
+            0.0 + SPHERE_SIZE_PLUS_MARGIN,
+            crate::ROOM_SIZE_Z / 3.0 * 2.0,
+            SPHERE_SIZE,
+            1000,
+            enemy::EnemyType::Sphere,
+            5.0,
+            0.0,
+            0.0));   
+
+        enemies.push(enemy::Enemy::new(
+            SPHERE_SIZE_PLUS_MARGIN,
+            crate::ROOM_SIZE_Y - SPHERE_SIZE_PLUS_MARGIN,
+            crate::ROOM_SIZE_Z / 2.0,
+            SPHERE_SIZE,
+            1000,
+            enemy::EnemyType::Sphere,
+            0.0,
+            0.0,
+            -5.0));
+
+        enemies.push(enemy::Enemy::new(
+            crate::ROOM_SIZE_X - SPHERE_SIZE_PLUS_MARGIN,
+            crate::ROOM_SIZE_Y - SPHERE_SIZE_PLUS_MARGIN,
+            crate::ROOM_SIZE_Z / 2.0,
+            SPHERE_SIZE,
+            1000,
+            enemy::EnemyType::Sphere,
+            0.0,
+            0.0,
+            5.0));
+
+
 
         Game {
             player: player::Player::new(
-                140 as f64,
-                60 as f64,
-                155.0,
+                crate::ROOM_SIZE_X/2.0 as f64,
+                crate::ROOM_SIZE_Y/3.0 as f64,
+                1.0,
                 0.0,
                 0.0,
                 0.0,
@@ -66,7 +93,11 @@ impl Game {
                 Vec::new(),
             ),
             enemies: enemies,
-            room: room::Room::new(300.0,150.0,400.0)
+            room: room::Room::new(
+                crate::ROOM_SIZE_X,
+                crate::ROOM_SIZE_Y,
+                crate::ROOM_SIZE_Z
+            )
         }
     }
     pub fn key_pressed(&mut self, key: piston_window::Key) {
@@ -122,7 +153,7 @@ impl Game {
             enemy.move_enemy(self.room.x, self.room.y, self.room.z);
         }
         
-        let delta_z: f64 = 2.0;
+        let delta_z: f64 = 3.0;
         //self.projectiles.clear();S
 
         let mut vector_len_coef = 5.0; // lower to increase FPS (1 is minimum, 5 for better quality)
@@ -131,13 +162,13 @@ impl Game {
         }
         
         //let mut canvas_vec: Vec<[[u8;4];512]> = [[[0_u8,0_u8,0_u8,0_u8]; 512]; 512].to_vec();
-        let mut img: image::ImageBuffer<Rgba<u8>, Vec<u8>> = RgbaImage::new(512, 512);
+        let mut img: image::ImageBuffer<Rgba<u8>, Vec<u8>> = RgbaImage::new(CANVAS_WIDTH as u32, CANVAS_HEIGHT as u32);
 
         // iterate over all projectiles 
         img.par_enumerate_pixels_mut().for_each(|(pixel_pos_y, pixel_pos_x, pixel)| {
 
-            let delta_y: f64 = (-256_f64 + (pixel_pos_x as f64)) / 100.0;            
-            let delta_x: f64 = (-256_f64 + (pixel_pos_y as f64)) / 100.0;
+            let delta_y: f64 = (-(CANVAS_WIDTH_HALF as f64) + (pixel_pos_x as f64)) / 100.0;            
+            let delta_x: f64 = (-(CANVAS_HEIGHT_HALF as f64) + (pixel_pos_y as f64)) / 100.0;
             let vec_len = (delta_x.powf(2.0) + delta_y.powf(2.0) + delta_z.powf(2.0)).sqrt() * vector_len_coef;
             
             let norm_delta_x = delta_x / vec_len;

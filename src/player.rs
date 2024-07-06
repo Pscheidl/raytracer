@@ -1,5 +1,4 @@
-
-use crate::{projectile::{Projectile, self}};
+use crate::projectile::Projectile;
 
 pub struct Player {
     pub x: f64,

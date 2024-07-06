@@ -1,6 +1,6 @@
 use std::{collections::HashSet, rc::Rc};
 
-use crate::{enemy::Enemy, player, projectile::{self, Projectile}, room::Room};
+use crate::{enemy::Enemy, projectile::Projectile, room::Room};
 
 
 // 1.6-1.8 FPS before usage of RAY state
@@ -109,7 +109,11 @@ impl LightRay<ColorFoundSearchingForLightSource> {
     }
 
     fn trace_ray_towards_light(start_vec: [f64; 3], max_objects: usize, room: &Room, objects: &Vec<Enemy>) -> (usize, f32) {
-        let light_vec = [room.x / 2.0, 0.0, room.z / 2.0]; // hard-coded light source
+        let light_vec = [
+            crate::LIGHT_POS_X,
+            crate::LIGHT_POS_Y,
+            crate::LIGHT_POS_Z
+            ]; // hard-coded light source
         let light_to_projectile_dx = light_vec[0] - start_vec[0];
         let light_to_projectile_dy = light_vec[1] - start_vec[1];
         let light_to_projectile_dz = light_vec[2] - start_vec[2];

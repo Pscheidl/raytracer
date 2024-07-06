@@ -1,4 +1,3 @@
-use piston_window::rectangle;
 use piston_window::types::Color;
 use piston_window::Context;
 use piston_window::G2d;

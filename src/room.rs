@@ -1,4 +1,4 @@
-use crate::{projectile::{Projectile, self}};
+use crate::projectile::Projectile;
 
 #[derive(Copy, Clone)]
 pub struct Room {
@@ -148,8 +148,8 @@ impl Room {
             }
         }
         if projectile.y <= 0.0 { // up    
-            if projectile.x + 10.0 > self.x / 2.0 && projectile.x - 10.0 < self.x / 2.0
-            && projectile.z + 10.0 > self.z / 2.0 && projectile.z - 10.0 < self.z / 2.0  {
+            if projectile.x + 10.0 > crate::LIGHT_POS_X && projectile.x - 10.0 < crate::LIGHT_POS_X
+            && projectile.z + 10.0 > crate::LIGHT_POS_Z && projectile.z - 10.0 < crate::LIGHT_POS_Z  {
                 return Some([
                     1.0,
                     1.0,
