@@ -190,12 +190,19 @@ impl LightRay<FindingColor> {
 
         let mut option_first_object_collision_vec: Option<[f64;3]> = None;
         let mut option_wall_collision_vec: Option<[f64;3]> = None;
-        
+        let mut is_fast_travel = true;
+        const FAST_TRAVEL_FACTOR: f64 = 20.0; // minimum value showing the highest FPS for default scene setup
  
         'ray_travel: for _x in 1..100000 { // not using loop for debug in order to handle infinity errors
             
             // check walls
             if room.is_outside(&self.projectile) { // faster check for end of the room (+20 % FPS)
+                if is_fast_travel {
+                    is_fast_travel = false;
+                    self.projectile.multi_increment(-FAST_TRAVEL_FACTOR);
+                    continue;
+
+                }
                 if let Some(wall_color) = room.get_wall_color_at_projectile(&self.projectile) {
                 
                     // add color from the wall
@@ -226,6 +233,10 @@ impl LightRay<FindingColor> {
 
                 if enemy_to_projectile_dx.abs() > object_size_plus_error || enemy_to_projectile_dy.abs() > object_size_plus_error || enemy_to_projectile_dz.abs() > object_size_plus_error {
                     continue;
+                } else if is_fast_travel {
+                    is_fast_travel = false;
+                    self.projectile.multi_increment(-FAST_TRAVEL_FACTOR);
+                    break;
                 }
                 // Compute expensive distance
                 let len_projectile_to_core = ((enemy_to_projectile_dx).powf(2.0) + (enemy_to_projectile_dy).powf(2.0) + (enemy_to_projectile_dz).powf(2.0)).sqrt();
@@ -269,7 +280,12 @@ impl LightRay<FindingColor> {
                     self.projectile.increment();
                 }
             }
-            self.projectile.increment();
+            if is_fast_travel {
+                self.projectile.multi_increment(FAST_TRAVEL_FACTOR);
+            } else {
+                self.projectile.increment();
+            }
+            
         }
     self.transition(ColorFoundSearchingForLightSource { option_first_object_collision_vec, option_wall_collision_vec })
         

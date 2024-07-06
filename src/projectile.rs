@@ -35,4 +35,10 @@ impl Projectile {
         self.y += self.dy;
         self.z += self.dz;
     }
+
+    pub fn multi_increment(&mut self, multiplier: f64) {
+        self.x += self.dx * multiplier;
+        self.y += self.dy * multiplier;
+        self.z += self.dz * multiplier;
+    }
 }
