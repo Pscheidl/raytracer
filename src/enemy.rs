@@ -47,25 +47,25 @@ impl Enemy {
         self.x += self.moving_x_speed;
         // move enemy on x axis
         if self.x + self.size  >= room_size_x {
-            self.moving_x_speed = -5.0;
+            self.moving_x_speed = -3.0;
         } else if self.x - self.size  <= 0.0 {
-            self.moving_x_speed = 5.0;
+            self.moving_x_speed = 3.0;
         }
 
         self.y += self.moving_y_speed;
         // move enemy on y axis
         if self.y + self.size  >= room_size_y {
-            self.moving_y_speed = -5.0;
+            self.moving_y_speed = -3.0;
         } else if self.y - self.size  <= 0.0 {
-            self.moving_y_speed = 5.0;
+            self.moving_y_speed = 3.0;
         }
 
         self.z += self.moving_z_speed;
         // move enemy on z axis
         if self.z + self.size  >= room_size_z {
-            self.moving_z_speed = -5.0;
+            self.moving_z_speed = -3.0;
         } else if self.z - self.size  <= 0.0 {
-            self.moving_z_speed = 5.0;
+            self.moving_z_speed = 3.0;
         }
     }
 }
