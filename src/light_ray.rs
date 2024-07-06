@@ -16,7 +16,6 @@ macro_rules! impl_ray_state {
 
 impl_ray_state!(
     FindingColor,
-    IntermediateCheckForLightSource,
     ColorFoundSearchingForLightSource
 );
 
@@ -27,11 +26,6 @@ pub trait LightRayState {
 
 #[derive(Copy, Clone, Debug)]
 pub struct FindingColor;
-
-#[derive(Copy, Clone, Debug)]
-pub struct IntermediateCheckForLightSource {
-    projectile_before_collision: Projectile
-}
 
 #[derive(Copy, Clone, Debug)]
 pub struct ColorFoundSearchingForLightSource {
