@@ -205,16 +205,4 @@ impl Room {
         }
         return None;
     }
-
-    pub fn is_projectile_near_light(&self, projectile: &Projectile) -> bool {
-        const LIGHT_SIZE: f64 = 0.8;
-        let room_to_projectile_dx = self.x / 2.0 - projectile.x;
-        let room_to_projectile_dy = - projectile.y;
-        let room_to_projectile_dz = self.z / 2.0 - projectile.z;
-
-        if room_to_projectile_dx.abs() < LIGHT_SIZE && room_to_projectile_dy.abs() < LIGHT_SIZE && room_to_projectile_dz.abs() < LIGHT_SIZE { 
-            return true
-        }
-        return false
-    }
 }

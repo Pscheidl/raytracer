@@ -2,7 +2,6 @@ extern crate find_folder;
 extern crate piston_window;
 extern crate image;
 
-mod drawing;
 mod game;
 mod player;
 mod projectile;
@@ -10,7 +9,6 @@ mod enemy;
 mod room;
 mod light_ray;
 
-use drawing::to_gui_coord_u32;
 use game::Game;
 use piston_window::types::Color;
 use piston_window::*;
@@ -49,8 +47,8 @@ fn main() {
     let mut window_settings = piston_window::WindowSettings::new(
         "3D Raytracer",
         [
-            to_gui_coord_u32(WINDOW_WIDTH),
-            to_gui_coord_u32(WINDOW_HEIGHT),
+            WINDOW_WIDTH as u32,
+            WINDOW_HEIGHT as u32,
         ],
     )
     .exit_on_esc(true);

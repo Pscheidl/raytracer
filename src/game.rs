@@ -37,7 +37,6 @@ impl Game {
             0.0 + SPHERE_SIZE_PLUS_MARGIN,
             crate::ROOM_SIZE_Z / 3.0 * 2.0,
             SPHERE_SIZE,
-            1000,
             enemy::EnemyType::Sphere,
             enemy::ENEMY_SPEED,
             0.0,
@@ -48,7 +47,6 @@ impl Game {
             crate::ROOM_SIZE_Y - SPHERE_SIZE_PLUS_MARGIN,
             crate::ROOM_SIZE_Z / 2.0,
             SPHERE_SIZE,
-            1000,
             enemy::EnemyType::Sphere,
             0.0,
             0.0,
@@ -59,7 +57,6 @@ impl Game {
             crate::ROOM_SIZE_Y - SPHERE_SIZE_PLUS_MARGIN,
             crate::ROOM_SIZE_Z / 2.0,
             SPHERE_SIZE,
-            1000,
             enemy::EnemyType::Sphere,
             0.0,
             0.0,
@@ -75,8 +72,6 @@ impl Game {
                 0.0,
                 0.0,
                 0.0,
-                10.0,
-                10.0,
                 false,
                 false,
                 false,
@@ -90,7 +85,6 @@ impl Game {
                 false,
                 false,
                 false,
-                Vec::new(),
             ),
             enemies: enemies,
             room: room::Room::new(
@@ -154,14 +148,12 @@ impl Game {
         }
         
         let delta_z: f64 = 3.0;
-        //self.projectiles.clear();S
 
         let mut vector_len_coef = 5.0; // lower to increase FPS (1 is minimum, 5 for better quality)
         if self.player.is_low_detail_render {
             vector_len_coef = 1.0;
         }
         
-        //let mut canvas_vec: Vec<[[u8;4];512]> = [[[0_u8,0_u8,0_u8,0_u8]; 512]; 512].to_vec();
         let mut img: image::ImageBuffer<Rgba<u8>, Vec<u8>> = RgbaImage::new(CANVAS_WIDTH as u32, CANVAS_HEIGHT as u32);
 
         // iterate over all projectiles 
@@ -194,7 +186,6 @@ impl Game {
                 rot_x_y_z_delta_x,
                 rot_x_y_z_delta_y,
                 rot_x_y_z_delta_z,
-                1.0 // 1.0 max brightness 0.0 dead
             );
             let current_ray = LightRay::new(projectile);
             let current_ray = current_ray.find_wall_color(&self.room, &self.enemies);

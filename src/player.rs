@@ -7,8 +7,6 @@ pub struct Player {
     pub angle_x: f64,
     pub angle_y: f64,
     pub angle_z: f64,
-    pub move_speed_left: f64,
-    pub move_speed_up: f64,
     pub is_moving_up: bool,
     pub is_moving_down: bool,
     pub is_moving_left: bool,
@@ -22,7 +20,6 @@ pub struct Player {
     pub is_roll_left: bool,
     pub is_roll_right: bool,
     pub is_low_detail_render: bool,
-    pub projectiles: Vec::<Vec::<Projectile>>,
 }
 
 impl Player {
@@ -33,8 +30,6 @@ impl Player {
         angle_x: f64,
         angle_y: f64,
         angle_z: f64,
-        move_speed_left: f64,
-        move_speed_up: f64,
         is_moving_up: bool,
         is_moving_down: bool,
         is_moving_left: bool,
@@ -48,7 +43,6 @@ impl Player {
         is_roll_left: bool,
         is_roll_right: bool,
         is_low_detail_render: bool,
-        projectiles: Vec::<Vec::<Projectile>>,
     ) -> Player {
         Player {
             x,
@@ -57,8 +51,6 @@ impl Player {
             angle_x,
             angle_y,
             angle_z,
-            move_speed_left,
-            move_speed_up,
             is_moving_up,
             is_moving_down,
             is_moving_left,
@@ -72,7 +64,6 @@ impl Player {
             is_roll_left,
             is_roll_right,
             is_low_detail_render,
-            projectiles,
         }
     }
     pub fn spawn_new_rays(&mut self) {

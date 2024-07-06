@@ -2,8 +2,6 @@ use std::{collections::HashSet, rc::Rc};
 
 use crate::{enemy::Enemy, projectile::Projectile, room::Room};
 
-
-// 1.6-1.8 FPS before usage of RAY state
 macro_rules! impl_ray_state {
     ($($state:ident),+) => {
         $(
@@ -130,7 +128,7 @@ impl LightRay<ColorFoundSearchingForLightSource> {
             delta_x,
             delta_y,
             delta_z,
-            1.0);
+        );
 
         let mut objects_from_object_towards_light: HashSet<usize> = HashSet::new();
 

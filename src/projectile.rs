@@ -6,7 +6,6 @@ pub struct Projectile {
     pub dx: f64,
     pub dy: f64,
     pub dz: f64,
-    pub time_to_live: f64,
 }
 
 impl Projectile {
@@ -17,7 +16,6 @@ impl Projectile {
         dx: f64,
         dy: f64,
         dz: f64,
-        time_to_live: f64,
     ) -> Projectile {
         Projectile {
             x,
@@ -26,7 +24,6 @@ impl Projectile {
             dx,
             dy,
             dz,
-            time_to_live,
         }
     }
 
