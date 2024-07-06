@@ -134,14 +134,25 @@ impl LightRay<ColorFoundSearchingForLightSource> {
 
         let mut objects_from_object_towards_light: HashSet<usize> = HashSet::new();
 
+        let mut is_fast_travel = true;
+        const FAST_TRAVEL_FACTOR: f64 = 20.0; // minimum value showing the highest FPS for default scene setup
+
         // move the projectile from collision point
         projectile.increment();
 
         'outer: for _x in 1..1000000 {
-            projectile.increment();
-            
+            if is_fast_travel {
+                projectile.multi_increment(FAST_TRAVEL_FACTOR);
+            } else {
+                projectile.increment();
+            }
 
             if room.is_outside(&projectile) {
+                if is_fast_travel {
+                    is_fast_travel = false;
+                    projectile.multi_increment(-FAST_TRAVEL_FACTOR);
+                    continue;
+                }
                 break;
             }
             
@@ -157,6 +168,10 @@ impl LightRay<ColorFoundSearchingForLightSource> {
 
                 if enemy_to_projectile_dx.abs() > object_size_plus_error || enemy_to_projectile_dy.abs() > object_size_plus_error || enemy_to_projectile_dz.abs() > object_size_plus_error {
                     continue;
+                } else if is_fast_travel {
+                    is_fast_travel = false;
+                    projectile.multi_increment(-FAST_TRAVEL_FACTOR);
+                    break;
                 }
 
                 // Compute expensive distance
