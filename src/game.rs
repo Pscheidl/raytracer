@@ -39,7 +39,7 @@ impl Game {
             SPHERE_SIZE,
             1000,
             enemy::EnemyType::Sphere,
-            3.0,
+            enemy::ENEMY_SPEED,
             0.0,
             0.0));   
 
@@ -52,7 +52,7 @@ impl Game {
             enemy::EnemyType::Sphere,
             0.0,
             0.0,
-            -3.0));
+            -enemy::ENEMY_SPEED));
 
         enemies.push(enemy::Enemy::new(
             crate::ROOM_SIZE_X - SPHERE_SIZE_PLUS_MARGIN,
@@ -63,7 +63,7 @@ impl Game {
             enemy::EnemyType::Sphere,
             0.0,
             0.0,
-            3.0));
+            enemy::ENEMY_SPEED));
 
 
 

@@ -179,11 +179,12 @@ impl LightRay<ColorFoundSearchingForLightSource> {
                 
                 if len_projectile_to_core + 0.5 >= object_size && len_projectile_to_core - 0.5 <= object_size {
                     if !objects_from_object_towards_light.contains(&enemy_id) {
-                        objects_from_object_towards_light.insert(enemy_id);
+                        is_fast_travel = true;
+                        objects_from_object_towards_light.insert(enemy_id);                        
                         if objects_from_object_towards_light.len()  >= max_objects {
                             break 'outer;
                         }                    
-                    }
+                    }                    
                 }
             }            
         }
@@ -293,6 +294,7 @@ impl LightRay<FindingColor> {
                     
                     // avoid collision in next iteration
                     self.projectile.increment();
+                    is_fast_travel = true;
                 }
             }
             if is_fast_travel {

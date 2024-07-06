@@ -5,6 +5,8 @@ pub enum EnemyType {
     Sphere,
 }
 
+pub const ENEMY_SPEED: f64 = 3.0;
+
 #[derive(Copy, Clone)]
 pub struct Enemy {
     pub x: f64,
@@ -47,25 +49,25 @@ impl Enemy {
         self.x += self.moving_x_speed;
         // move enemy on x axis
         if self.x + self.size  >= room_size_x {
-            self.moving_x_speed = -3.0;
+            self.moving_x_speed = -ENEMY_SPEED;
         } else if self.x - self.size  <= 0.0 {
-            self.moving_x_speed = 3.0;
+            self.moving_x_speed = ENEMY_SPEED;
         }
 
         self.y += self.moving_y_speed;
         // move enemy on y axis
         if self.y + self.size  >= room_size_y {
-            self.moving_y_speed = -3.0;
+            self.moving_y_speed = -ENEMY_SPEED;
         } else if self.y - self.size  <= 0.0 {
-            self.moving_y_speed = 3.0;
+            self.moving_y_speed = ENEMY_SPEED;
         }
 
         self.z += self.moving_z_speed;
         // move enemy on z axis
         if self.z + self.size  >= room_size_z {
-            self.moving_z_speed = -3.0;
+            self.moving_z_speed = -ENEMY_SPEED;
         } else if self.z - self.size  <= 0.0 {
-            self.moving_z_speed = 3.0;
+            self.moving_z_speed = ENEMY_SPEED;
         }
     }
 }
