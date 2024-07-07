@@ -1,5 +1,3 @@
-use crate::projectile::Projectile;
-
 pub struct Player {
     pub x: f64,
     pub y: f64,

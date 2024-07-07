@@ -1,22 +1,81 @@
 use crate::projectile::Projectile;
+use crate::math::Vector3D;
+
+#[derive(Copy, Clone)]
+pub struct LightSource {
+    pub strenght: f64,
+    pub delta_strenght: f64,
+    pub position: Vector3D,
+    pub delta_position: Vector3D,
+}
+
+impl LightSource {
+    pub fn new(
+        strenght: f64,
+        delta_strenght: f64,
+        position: Vector3D,
+        delta_position: Vector3D,
+    ) -> LightSource {
+        LightSource {
+            strenght,
+            delta_strenght,
+            position,
+            delta_position,
+        }
+    }
+
+    pub fn tick(&mut self) {
+        self.position.0[0] += self.delta_position.0[0];
+        self.position.0[1] += self.delta_position.0[1];
+        self.position.0[2] += self.delta_position.0[2];
+        if self.position.0[0] < 0.0 {
+            self.delta_position.0[0] = - self.delta_position.0[0];
+        }
+        if self.position.0[1] < 0.0 {
+            self.delta_position.0[1] = - self.delta_position.0[1];
+        }
+        if self.position.0[2] < 0.0 {
+            self.delta_position.0[2] = - self.delta_position.0[2];
+        }
+
+        if self.position.0[0] > 150_f64 {
+            self.delta_position.0[0] = - self.delta_position.0[0];
+        }
+        if self.position.0[1] > 150_f64 {
+            self.delta_position.0[1] = - self.delta_position.0[1];
+        }
+        if self.position.0[2] > 150_f64 {
+            self.delta_position.0[2] = - self.delta_position.0[2];
+        }
+
+        self.flicker_light();   
+    }
+
+    pub fn flicker_light(&mut self) {
+        self.strenght += self.delta_strenght;
+        if self.strenght > 75_f64 {
+            self.delta_strenght = -2_f64;
+        } else if self.strenght < 5_f64 {
+            self.delta_strenght = 2_f64;
+        }
+    }
+}
+
 
 #[derive(Copy, Clone)]
 pub struct Room {
-    pub x: f64,
-    pub y: f64,
-    pub z: f64,
+    pub size: Vector3D,
+    pub light_source: LightSource,
 }
 
 impl Room {
     pub fn new(
-        x: f64,
-        y: f64,
-        z: f64,
+        size: Vector3D,
+        light_source: LightSource,
     ) -> Room {
         Room {
-            x,
-            y,
-            z,
+            size,
+            light_source,
         }
     }
 
@@ -24,24 +83,24 @@ impl Room {
         if projectile.x <= 0.0 {
             return true;
         }
-        if projectile.x >= self.x {
+        if projectile.x >= self.size.0[0] {
             return true;
         }
 
         if projectile.y <= 0.0 {
             return true;
         }
-        if projectile.y >= self.y {
+        if projectile.y >= self.size.0[1]  {
             return true;
         }
 
         if projectile.z <= 0.0 {
             return true;
         }
-        if projectile.z >= self.z {
+        if projectile.z >= self.size.0[2] {
             return true;
         }
-        return false;
+        false
     }
 
     pub fn get_wall_color_at_projectile(self, projectile: &Projectile) -> Option<[f32; 4]> {
@@ -53,7 +112,7 @@ impl Room {
         if projectile.x <= 0.0 { // left
             if is_y_alternate {
                 return Some([
-                    1.0 as f32, 
+                    1.0, 
                     0.0, 
                     0.0, 
                     1.0
@@ -74,7 +133,7 @@ impl Room {
                 ]) // lighter red
             }
         }
-        if projectile.x >= self.x { // right                        
+        if projectile.x >= self.size.0[0] { // right                        
             if is_y_alternate {
                 return Some([
                     0.0, 
@@ -123,7 +182,7 @@ impl Room {
                 ])  // lighter cyan  
             }
         }
-        if projectile.z >= self.z { // back
+        if projectile.z >= self.size.0[2] { // back
             if is_x_alternate {
                 return Some([
                     1.0, 
@@ -148,12 +207,12 @@ impl Room {
             }
         }
         if projectile.y <= 0.0 { // up    
-            if projectile.x + 10.0 > crate::LIGHT_POS_X && projectile.x - 10.0 < crate::LIGHT_POS_X
-            && projectile.z + 10.0 > crate::LIGHT_POS_Z && projectile.z - 10.0 < crate::LIGHT_POS_Z  {
+            if projectile.x + 10.0 > self.light_source.position.0[0] && projectile.x - 10.0 < self.light_source.position.0[0]
+            && projectile.z + 10.0 > self.light_source.position.0[2] && projectile.z - 10.0 < self.light_source.position.0[2]  {
                 return Some([
                     1.0,
                     1.0,
-                    1.0,
+                    0.5,
                     1.0
                 ]) // LIGHT
             }  else if is_x_alternate {
@@ -179,7 +238,7 @@ impl Room {
                 ])  // lighter pink
             }
         }
-        if projectile.y >= self.y { // back
+        if projectile.y >= self.size.0[2] { // back
             if is_x_alternate {
                 return Some([
                     0.0, 
@@ -203,6 +262,6 @@ impl Room {
                 ]) // lighter blue    
             }
         }
-        return None;
+        None
     }
 }

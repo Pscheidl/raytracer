@@ -3,6 +3,7 @@ extern crate piston_window;
 extern crate image;
 
 mod game;
+mod math;
 mod player;
 mod projectile;
 mod enemy;

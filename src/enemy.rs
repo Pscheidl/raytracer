@@ -1,8 +1,10 @@
 #[derive(Copy, Clone)]
 pub enum EnemyType {
-    Point,
-    Cube,
     Sphere,
+    /*
+    Future shapes:
+    Point,
+    Cube,*/
 }
 
 pub const ENEMY_SPEED: f64 = 3.0;
@@ -34,7 +36,7 @@ impl Enemy {
             x,
             y,
             z,
-            size: size,
+            size,
             enemy_type,
             moving_x_speed,
             moving_y_speed,

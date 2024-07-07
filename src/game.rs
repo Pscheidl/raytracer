@@ -1,8 +1,10 @@
+use crate::math::Vector3D;
 use crate::player;
 use crate::enemy;
 use crate::light_ray::LightRay;
 use crate::projectile::Projectile;
 use crate::room;
+use crate::room::LightSource;
 
 use image::Rgba;
 use image::RgbaImage;
@@ -66,8 +68,8 @@ impl Game {
 
         Game {
             player: player::Player::new(
-                crate::ROOM_SIZE_X/2.0 as f64,
-                crate::ROOM_SIZE_Y/3.0 as f64,
+                crate::ROOM_SIZE_X/2.0_f64,
+                crate::ROOM_SIZE_Y/3.0_f64,
                 1.0,
                 0.0,
                 0.0,
@@ -86,12 +88,14 @@ impl Game {
                 false,
                 false,
             ),
-            enemies: enemies,
+            enemies,
             room: room::Room::new(
-                crate::ROOM_SIZE_X,
-                crate::ROOM_SIZE_Y,
-                crate::ROOM_SIZE_Z
-            )
+                Vector3D([crate::ROOM_SIZE_X, crate::ROOM_SIZE_Y, crate::ROOM_SIZE_Z]),
+                LightSource::new(75_f64,
+                    2_f64,
+                    Vector3D([crate::ROOM_SIZE_X / 2.0, 0.0, crate::ROOM_SIZE_Z / 2.0]),
+                    Vector3D([1.0,0.0,1.0])),
+                )
         }
     }
     pub fn key_pressed(&mut self, key: piston_window::Key) {
@@ -144,8 +148,10 @@ impl Game {
 
         // setup world
         for enemy in self.enemies.iter_mut() {
-            enemy.move_enemy(self.room.x, self.room.y, self.room.z);
+            enemy.move_enemy(self.room.size.0[0], self.room.size.0[1], self.room.size.0[2]);
         }
+
+        self.room.light_source.tick();
         
         let delta_z: f64 = 3.0;
 

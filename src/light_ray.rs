@@ -1,6 +1,6 @@
 use std::{collections::HashSet, rc::Rc};
 
-use crate::{enemy::Enemy, projectile::Projectile, room::Room};
+use crate::{enemy::{self, Enemy}, projectile::Projectile, room::Room};
 
 macro_rules! impl_ray_state {
     ($($state:ident),+) => {
@@ -57,10 +57,10 @@ impl<S: LightRayState> LightRay<S>  {
 
 impl LightRay<ColorFoundSearchingForLightSource> {
     pub fn skip_shadows(self) -> [u8; 4]{
-        return [(self.buffer_wall_color[0]*255_f32) as u8, (self.buffer_wall_color[1]*255_f32) as u8,(self.buffer_wall_color[2]*255_f32) as u8,(self.buffer_wall_color[3]*255_f32) as u8];
+        [(self.buffer_wall_color[0]*255_f32) as u8, (self.buffer_wall_color[1]*255_f32) as u8,(self.buffer_wall_color[2]*255_f32) as u8,(self.buffer_wall_color[3]*255_f32) as u8]
     }
 
-    pub fn compute_shadows(self, room: &Room, objects: &Vec<Enemy>) -> [u8; 4]{
+    pub fn compute_shadows(self, room: &Room, objects: &[Enemy]) -> [u8; 4]{
 
         let mut shadow_color = self.buffer_wall_color;
         let mut wall_shadow_count = 0;
@@ -76,11 +76,8 @@ impl LightRay<ColorFoundSearchingForLightSource> {
         }
         
         // object shadows
-        match self.state.option_first_object_collision_vec  {
-            Some(first_object_collision_vec) => {
-                (object_shadow_count, light_object) = Self::trace_ray_towards_light(first_object_collision_vec, 4, room, objects);
-            }
-            None => {},
+        if let Some(first_object_collision_vec) = self.state.option_first_object_collision_vec  {            
+            (object_shadow_count, light_object) = Self::trace_ray_towards_light(first_object_collision_vec, 4, room, objects);            
         }
         shadow_color[0] = (shadow_color[0] + 0.1).min(1.0)*light_wall*light_object;
         shadow_color[1] = (shadow_color[1] + 0.1).min(1.0)*light_wall*light_object;
@@ -95,22 +92,22 @@ impl LightRay<ColorFoundSearchingForLightSource> {
             shadow_color[1] -= 0.05;
             shadow_color[2] -= 0.05;
         }
-
         
-        return [(shadow_color[0]*255_f32) as u8, (shadow_color[1]*255_f32) as u8,(shadow_color[2]*255_f32) as u8,(shadow_color[3]*255_f32) as u8];
+        [(shadow_color[0]*255_f32) as u8, (shadow_color[1]*255_f32) as u8,(shadow_color[2]*255_f32) as u8,(shadow_color[3]*255_f32) as u8]
     }
 
-    fn trace_ray_towards_light(start_vec: [f64; 3], max_objects: usize, room: &Room, objects: &Vec<Enemy>) -> (usize, f32) {
-        let light_vec = [
-            crate::LIGHT_POS_X,
+    fn trace_ray_towards_light(start_vec: [f64; 3], max_objects: usize, room: &Room, objects: &[Enemy]) -> (usize, f32) {
+        let light_vec = room.light_source.position;
+            /*crate::LIGHT_POS_X,
             crate::LIGHT_POS_Y,
             crate::LIGHT_POS_Z
-            ]; // hard-coded light source
-        let light_to_projectile_dx = light_vec[0] - start_vec[0];
-        let light_to_projectile_dy = light_vec[1] - start_vec[1];
-        let light_to_projectile_dz = light_vec[2] - start_vec[2];
+            ];*/ // hard-coded light source
+        let light_to_projectile_dx = light_vec.0[0] - start_vec[0];
+        let light_to_projectile_dy = light_vec.0[1] - start_vec[1];
+        let light_to_projectile_dz = light_vec.0[2] - start_vec[2];
+        
         let len_light_to_projectile = (light_to_projectile_dx.powf(2.0) + light_to_projectile_dy.powf(2.0) + light_to_projectile_dz.powf(2.0)).sqrt();
-        let light = (75.0 / len_light_to_projectile) as f32;
+        let light = (room.light_source.strenght / len_light_to_projectile) as f32;
         let delta_x = light_to_projectile_dx / len_light_to_projectile;
         let delta_y = light_to_projectile_dy / len_light_to_projectile;
         let delta_z = light_to_projectile_dz / len_light_to_projectile;
@@ -169,19 +166,19 @@ impl LightRay<ColorFoundSearchingForLightSource> {
                 // Compute expensive distance
                 let len_projectile_to_core = ((enemy_to_projectile_dx).powf(2.0) + (enemy_to_projectile_dy).powf(2.0) + (enemy_to_projectile_dz).powf(2.0)).sqrt();
                 
-                if len_projectile_to_core + 0.5 >= object_size && len_projectile_to_core - 0.5 <= object_size {
-                    if !objects_from_object_towards_light.contains(&enemy_id) {
-                        is_fast_travel = true;
-                        objects_from_object_towards_light.insert(enemy_id);                        
-                        if objects_from_object_towards_light.len()  >= max_objects {
-                            break 'outer;
-                        }                    
+                if len_projectile_to_core + 0.5 >= object_size 
+                && len_projectile_to_core - 0.5 <= object_size 
+                && !objects_from_object_towards_light.contains(&enemy_id) {                    
+                    is_fast_travel = true;
+                    objects_from_object_towards_light.insert(enemy_id);                        
+                    if objects_from_object_towards_light.len()  >= max_objects {
+                        break 'outer;
                     }                    
+                               
                 }
             }            
         }
-
-        return (objects_from_object_towards_light.len(), light);
+        (objects_from_object_towards_light.len(), light)
     }
 }
 
@@ -194,7 +191,7 @@ impl LightRay<FindingColor> {
         }
     }
 
-    pub fn find_wall_color(mut self, room: &Room, objects: &Vec<Enemy>) -> LightRay<ColorFoundSearchingForLightSource>{
+    pub fn find_wall_color(mut self, room: &Room, objects: &[Enemy]) -> LightRay<ColorFoundSearchingForLightSource>{
 
         let mut option_first_object_collision_vec: Option<[f64;3]> = None;
         let mut option_wall_collision_vec: Option<[f64;3]> = None;
@@ -219,9 +216,9 @@ impl LightRay<FindingColor> {
                     self.buffer_wall_color[2] += wall_color[2];
     
                     option_wall_collision_vec = Some([
-                        self.projectile.x.clone(),
-                        self.projectile.y.clone(),
-                        self.projectile.z.clone()
+                        self.projectile.x,
+                        self.projectile.y,
+                        self.projectile.z,
                         ]);
     
                     break 'ray_travel // wall is the end of the room
@@ -229,7 +226,7 @@ impl LightRay<FindingColor> {
             }
 
             // check objects            
-            for (enemy_id, enemy) in objects.iter().enumerate() {
+            for enemy in objects.iter() {
 
                 let object_size = enemy.size;
                 let object_size_plus_error = object_size + 0.5;
@@ -246,48 +243,53 @@ impl LightRay<FindingColor> {
                     self.projectile.multi_increment(-FAST_TRAVEL_FACTOR);
                     break;
                 }
-                // Compute expensive distance
-                let len_projectile_to_core = ((enemy_to_projectile_dx).powf(2.0) + (enemy_to_projectile_dy).powf(2.0) + (enemy_to_projectile_dz).powf(2.0)).sqrt();
+                
+                match enemy.enemy_type {
+                    enemy::EnemyType::Sphere => {
+                        // Compute expensive distance
+                        let len_projectile_to_core = ((enemy_to_projectile_dx).powf(2.0) + (enemy_to_projectile_dy).powf(2.0) + (enemy_to_projectile_dz).powf(2.0)).sqrt();
 
-                if len_projectile_to_core + 0.5 >= object_size && len_projectile_to_core - 0.5 <= object_size {
-                    // collision with an object when searching for a wall                
-                    // while searching for a wall we can hit other objects
-                        
-                    let enemy_to_projectile_norm_x = enemy_to_projectile_dx / len_projectile_to_core;
-                    let enemy_to_projectile_norm_y = enemy_to_projectile_dy / len_projectile_to_core;
-                    let enemy_to_projectile_norm_z = enemy_to_projectile_dz / len_projectile_to_core;
+                        if len_projectile_to_core + 0.5 >= object_size && len_projectile_to_core - 0.5 <= object_size {
+                            // collision with an object when searching for a wall                
+                            // while searching for a wall we can hit other objects
+                                
+                            let enemy_to_projectile_norm_x = enemy_to_projectile_dx / len_projectile_to_core;
+                            let enemy_to_projectile_norm_y = enemy_to_projectile_dy / len_projectile_to_core;
+                            let enemy_to_projectile_norm_z = enemy_to_projectile_dz / len_projectile_to_core;
 
-                    // R=V−2N(V⋅N)
-                    // R=RAY-2*NORMAL(RAY*NORMAL)
-                    //                    ^-- dot product
+                            // R=V−2N(V⋅N)
+                            // R=RAY-2*NORMAL(RAY*NORMAL)
+                            //                    ^-- dot product
 
-                    let dot_x = self.projectile.dx + enemy_to_projectile_norm_x;
-                    let dot_y = self.projectile.dy + enemy_to_projectile_norm_y;
-                    let dot_z = self.projectile.dz + enemy_to_projectile_norm_z;
-                    let dot_projectile_ball_norm = (dot_x.powf(2.0) + dot_y.powf(2.0) + dot_z.powf(2.0)).sqrt();
-                    
-                    let reflection_dx = self.projectile.dx - 2.0*enemy_to_projectile_norm_x*(dot_projectile_ball_norm);
-                    let reflection_dy = self.projectile.dy - 2.0*enemy_to_projectile_norm_y*(dot_projectile_ball_norm);
-                    let reflection_dz = self.projectile.dz - 2.0*enemy_to_projectile_norm_z*(dot_projectile_ball_norm);
-                    let len_reflection_delta = (reflection_dx.powf(2.0) + reflection_dy.powf(2.0) + reflection_dz.powf(2.0)).sqrt();
-                    
-                    self.projectile.dx = reflection_dx / len_reflection_delta;
-                    self.projectile.dy = reflection_dy / len_reflection_delta;
-                    self.projectile.dz = reflection_dz / len_reflection_delta;
+                            let dot_x = self.projectile.dx + enemy_to_projectile_norm_x;
+                            let dot_y = self.projectile.dy + enemy_to_projectile_norm_y;
+                            let dot_z = self.projectile.dz + enemy_to_projectile_norm_z;
+                            let dot_projectile_ball_norm = (dot_x.powf(2.0) + dot_y.powf(2.0) + dot_z.powf(2.0)).sqrt();
+                            
+                            let reflection_dx = self.projectile.dx - 2.0*enemy_to_projectile_norm_x*(dot_projectile_ball_norm);
+                            let reflection_dy = self.projectile.dy - 2.0*enemy_to_projectile_norm_y*(dot_projectile_ball_norm);
+                            let reflection_dz = self.projectile.dz - 2.0*enemy_to_projectile_norm_z*(dot_projectile_ball_norm);
+                            let len_reflection_delta = (reflection_dx.powf(2.0) + reflection_dy.powf(2.0) + reflection_dz.powf(2.0)).sqrt();
+                            
+                            self.projectile.dx = reflection_dx / len_reflection_delta;
+                            self.projectile.dy = reflection_dy / len_reflection_delta;
+                            self.projectile.dz = reflection_dz / len_reflection_delta;
 
-                    // save first object collision for optional shadow computation
-                    if option_first_object_collision_vec.is_none() {
-                        option_first_object_collision_vec = Some([
-                            self.projectile.x,
-                            self.projectile.y,
-                            self.projectile.z,
-                            ]);
-                    }
-                    
-                    // avoid collision in next iteration
-                    self.projectile.increment();
-                    is_fast_travel = true;
-                }
+                            // save first object collision for optional shadow computation
+                            if option_first_object_collision_vec.is_none() {
+                                option_first_object_collision_vec = Some([
+                                    self.projectile.x,
+                                    self.projectile.y,
+                                    self.projectile.z,
+                                    ]);
+                            }
+                            
+                            // avoid collision in next iteration
+                            self.projectile.increment();
+                            is_fast_travel = true;
+                        }
+                    },
+                }                
             }
             if is_fast_travel {
                 self.projectile.multi_increment(FAST_TRAVEL_FACTOR);
